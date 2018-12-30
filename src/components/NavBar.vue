@@ -18,9 +18,11 @@
         <v-toolbar-title>{{appTitle}}</v-toolbar-title>
       </router-link>
       <v-spacer class="hidden-sm-and-down"></v-spacer>
-      <v-btn flat class="hidden-sm-and-down" to="/login">Login</v-btn>
-      <v-btn color="blue lighten-2" class="hidden-sm-and-down" to="/signup">Sign Up</v-btn>
-      <v-btn flat class="hidden-sm-and-down">Logout</v-btn>
+      <div v-if="!isAuthenticated" class="hidden-sm-and-down">
+        <v-btn flat to="/login">Login</v-btn>
+        <v-btn color="blue lighten-2" to="/signup">Sign Up</v-btn>
+      </div>
+      <v-btn v-if="isAuthenticated" outline class="hidden-sm-and-down" @click="logout">Logout</v-btn>
     </v-toolbar>
   </v-span>
 </template>
@@ -41,9 +43,21 @@ export default {
           title: "Sign Up",
           path: "/signup"
         },
-        { title: "Logout" }
+        {
+          title: "Logout"
+        }
       ]
     };
+  },
+  computed: {
+    isAuthenticated() {
+      return this.$store.getters.isAuthenticated;
+    }
+  },
+  methods: {
+    logout() {
+      this.$store.dispatch("userSignOut");
+    }
   }
 };
 </script>

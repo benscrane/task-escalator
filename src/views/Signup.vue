@@ -7,7 +7,12 @@
             <v-toolbar-title>Sign Up</v-toolbar-title>
           </v-toolbar>
           <v-card-text>
-            <v-form ref="form" v-model="valid" lazy-validation>
+            <v-form 
+              ref="form" 
+              v-model="valid" 
+              lazy-validation 
+              id="signupForm" 
+              @submit.prevent="submitSignup">
               <v-text-field 
                 prepend-icon="mdi-account"
                 name="email"
@@ -31,7 +36,11 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="primary" :disabled="!valid" @click="submitLogin">Sign Up</v-btn>
+            <v-btn 
+              color="primary" 
+              :disabled="!valid" 
+              type="submit" 
+              form="signupForm">Sign Up</v-btn>
           </v-card-actions>
         </v-card>
       </v-flex>
@@ -60,6 +69,12 @@ export default {
   methods: {
     submitSignup() {
       // implement method
+      if (this.$refs.form.validate()) {
+        this.$store.dispatch("userJoin", {
+          email: this.email,
+          password: this.password
+        });
+      }
     }
   }
 };
