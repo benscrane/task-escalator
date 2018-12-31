@@ -31,13 +31,29 @@ const router = new Router({
       meta: {
         authRequired: true
       }
+    },
+    {
+      path: "/settings",
+      name: "settings",
+      component: () => import("./views/Settings.vue"),
+      meta: {
+        authRequired: true
+      }
+    },
+    {
+      path: "/dashboard",
+      name: "dashboard",
+      component: () => import("./views/Dashboard.vue"),
+      meta: {
+        authRequired: true
+      }
     }
   ]
 });
 
 router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.authRequired)) {
-    if (!store.state.isAuthenticated) {
+    if (!store.state.user) {
       next({
         path: "/login"
       });

@@ -1,14 +1,14 @@
 <template>
   <v-container>
-    <h1>Profile</h1>
+    <h1>Settings</h1>
   </v-container>
 </template>
 
 <script>
 export default {
-  name: "Profile"
+  name: "Settings"
 };
 </script>
 
-<style>
+<style scoped>
 </style>

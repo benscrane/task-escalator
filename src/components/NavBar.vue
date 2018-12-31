@@ -53,20 +53,7 @@ export default {
   props: ["appTitle"],
   data() {
     return {
-      drawer: false,
-      menuItems: [
-        {
-          title: "Login",
-          path: "/login"
-        },
-        {
-          title: "Sign Up",
-          path: "/signup"
-        },
-        {
-          title: "Logout"
-        }
-      ]
+      drawer: false
     };
   },
   computed: {
