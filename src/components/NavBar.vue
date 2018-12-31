@@ -2,13 +2,30 @@
   <v-span>
     <v-navigation-drawer app v-model="drawer" class="blue darken-1" dark disable-resize-watcher>
       <v-list>
-        <template v-for="(item, index) in menuItems">
-          <v-list-tile :key="index" :to="item.path">
+        <div v-if="!isAuthenticated">
+          <v-list-tile to="/login">
             <v-list-tile-content>
-              {{item.title}}
+              Login
             </v-list-tile-content>
           </v-list-tile>
-        </template>
+          <v-list-tile to="signup">
+            <v-list-tile-content>
+              Sign Up
+            </v-list-tile-content>
+          </v-list-tile>
+        </div>
+        <div v-if="isAuthenticated">
+          <v-list-tile to="/profile">
+            <v-list-tile-content>
+              Profile
+            </v-list-tile-content>
+          </v-list-tile>
+          <v-list-tile @click="logout">
+            <v-list-tile-content>
+              Logout
+            </v-list-tile-content>
+          </v-list-tile>
+        </div>
       </v-list>
     </v-navigation-drawer>
     <v-toolbar app color="blue lighten-1" dark>
@@ -22,7 +39,10 @@
         <v-btn flat to="/login">Login</v-btn>
         <v-btn color="blue lighten-2" to="/signup">Sign Up</v-btn>
       </div>
-      <v-btn v-if="isAuthenticated" outline class="hidden-sm-and-down" @click="logout">Logout</v-btn>
+      <div v-if="isAuthenticated" class="hidden-sm-and-down">
+        <v-btn flat to="/profile">Profile</v-btn>
+        <v-btn outline @click="logout">Logout</v-btn>
+      </div>
     </v-toolbar>
   </v-span>
 </template>
