@@ -35,12 +35,28 @@
             </v-form>
           </v-card-text>
           <v-card-actions>
+            <div @click="showModal = true" id="resetPasswordLink">
+              Forgot your password?
+            </div>
             <v-spacer></v-spacer>
             <v-btn 
               color="primary" 
               :disabled="!valid" 
               type="submit"
               form="loginForm">Login</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-flex>
+      <v-flex v-if="showModal" xs12 sm8 lg4>
+        <v-card class="elevation-12">
+          <v-toolbar dark color="primary">
+            <v-toolbar-title>Reset Password</v-toolbar-title>
+          </v-toolbar>
+          <v-card-actions>
+            <v-btn
+              color="accent"
+              type="button"
+              @click="showModal = false">Cancel</v-btn>
           </v-card-actions>
         </v-card>
       </v-flex>
@@ -54,6 +70,7 @@ export default {
   data() {
     return {
       valid: false,
+      showModal: false,
       email: "",
       password: "",
       emailRules: [
@@ -81,4 +98,7 @@ export default {
 </script>
 
 <style scoped>
+#resetPasswordLink {
+  cursor: pointer;
+}
 </style>

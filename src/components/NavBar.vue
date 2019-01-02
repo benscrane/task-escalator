@@ -1,6 +1,6 @@
 <template>
   <v-span>
-    <v-navigation-drawer app v-model="drawer" class="blue darken-1" dark disable-resize-watcher>
+    <v-navigation-drawer app v-model="drawer" class="primary darken-1" dark disable-resize-watcher>
       <v-list>
         <div v-if="!isAuthenticated">
           <v-list-tile to="/login">
@@ -28,7 +28,7 @@
         </div>
       </v-list>
     </v-navigation-drawer>
-    <v-toolbar app color="blue lighten-1" dark>
+    <v-toolbar app color="primary lighten-1" dark>
       <v-toolbar-side-icon class="hidden-md-and-up" @click="drawer = !drawer"></v-toolbar-side-icon>
       <v-spacer class="hidden-md-and-up"></v-spacer>
       <router-link to="/">
@@ -37,7 +37,7 @@
       <v-spacer class="hidden-sm-and-down"></v-spacer>
       <div v-if="!isAuthenticated" class="hidden-sm-and-down">
         <v-btn flat to="/login">Login</v-btn>
-        <v-btn color="blue lighten-2" to="/signup">Sign Up</v-btn>
+        <v-btn color="primary lighten-2" to="/signup">Sign Up</v-btn>
       </div>
       <div v-if="isAuthenticated" class="hidden-sm-and-down">
         <v-btn flat to="/profile">Profile</v-btn>
