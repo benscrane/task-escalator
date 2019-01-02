@@ -35,7 +35,7 @@
             </v-form>
           </v-card-text>
           <v-card-actions>
-            <div @click="showModal = true" id="resetPasswordLink">
+            <div @click="showModal" id="resetPasswordLink">
               Forgot your password?
             </div>
             <v-spacer></v-spacer>
@@ -47,30 +47,26 @@
           </v-card-actions>
         </v-card>
       </v-flex>
-      <v-flex v-if="showModal" xs12 sm8 lg4>
-        <v-card class="elevation-12">
-          <v-toolbar dark color="primary">
-            <v-toolbar-title>Reset Password</v-toolbar-title>
-          </v-toolbar>
-          <v-card-actions>
-            <v-btn
-              color="accent"
-              type="button"
-              @click="showModal = false">Cancel</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-flex>
     </v-layout>
+    <reset-password-modal
+      v-show="isModalVisible"
+      @close="closeModal" />
   </v-container>
 </template>
 
 <script>
+import ResetPasswordModal from "@/components/ResetPasswordModal.vue";
+
 export default {
   name: "Login",
+  components: {
+    ResetPasswordModal: ResetPasswordModal
+  },
   data() {
     return {
       valid: false,
-      showModal: false,
+      isModalVisible: false,
+      isResetNotificationVisible: false,
       email: "",
       password: "",
       emailRules: [
@@ -92,6 +88,12 @@ export default {
           password: this.password
         });
       }
+    },
+    showModal() {
+      this.isModalVisible = true;
+    },
+    closeModal() {
+      this.isModalVisible = false;
     }
   }
 };
