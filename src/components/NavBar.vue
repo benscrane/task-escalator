@@ -15,10 +15,13 @@
           </v-list-tile>
         </div>
         <div v-if="isAuthenticated">
-          <v-list-tile to="/profile">
+          <v-list-tile to="/dashboard">
             <v-list-tile-content>
-              Profile
+              Dashboard
             </v-list-tile-content>
+          </v-list-tile>
+          <v-list-tile to="/settings">
+            Settings
           </v-list-tile>
           <v-list-tile @click="logout">
             <v-list-tile-content>
@@ -40,7 +43,8 @@
         <v-btn color="primary lighten-2" to="/signup">Sign Up</v-btn>
       </div>
       <div v-if="isAuthenticated" class="hidden-sm-and-down">
-        <v-btn flat to="/profile">Profile</v-btn>
+        <v-btn flat to="/dashboard">Dashboard</v-btn>
+        <v-btn flat to="/settings">Settings</v-btn>
         <v-btn outline @click="logout">Logout</v-btn>
       </div>
     </v-toolbar>

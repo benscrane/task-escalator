@@ -25,14 +25,6 @@ const router = new Router({
       component: () => import("./views/Signup.vue")
     },
     {
-      path: "/profile",
-      name: "profile",
-      component: () => import("./views/Profile.vue"),
-      meta: {
-        authRequired: true
-      }
-    },
-    {
       path: "/settings",
       name: "settings",
       component: () => import("./views/Settings.vue"),

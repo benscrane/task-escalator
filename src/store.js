@@ -13,6 +13,9 @@ export default new Vuex.Store({
   getters: {
     isAuthenticated(state) {
       return state.user !== null && state.user !== undefined;
+    },
+    getUser(state) {
+      return state.user;
     }
   },
   mutations: {
@@ -34,7 +37,7 @@ export default new Vuex.Store({
         .then(user => {
           commit("setUser", user);
           commit("setIsAuthenticated", true);
-          router.push("/profile");
+          router.push("/dashboard");
         })
         .catch(() => {
           commit("setUser", null);
@@ -49,7 +52,7 @@ export default new Vuex.Store({
         .then(user => {
           commit("setUser", user);
           commit("setIsAuthenticated", true);
-          router.push("/profile");
+          router.push("/dashboard");
         })
         .catch(() => {
           commit("setUser", null);
