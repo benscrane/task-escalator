@@ -2,7 +2,7 @@
   <transition name="modal-fade">
     <div class="modal-backdrop">
       <v-layout align-center justify-center>
-        <v-flex xs12 sm8 lg4>
+        <v-flex v-show="!resetDone" xs12 sm8 lg4>
           <v-card class="elevation-12">
             <v-toolbar dark color="primary">
               <v-toolbar-title>Reset Password</v-toolbar-title>
@@ -38,6 +38,24 @@
             </v-card-actions>
           </v-card>
         </v-flex>
+        <v-flex v-show="resetDone" xs12 sm8 lg4>
+          <v-card class="elevation-12">
+            <v-toolbar dark color="primary">
+              <v-toolbar-title>Reset Password</v-toolbar-title>
+            </v-toolbar>
+            <v-card-text>
+              <p class="subheading text-xs-center">
+                A password reset email has been sent.
+              </p>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn
+                color="primary"
+                @click="closeModal">OK</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-flex>
       </v-layout>
     </div>
   </transition>
@@ -51,6 +69,7 @@ export default {
   data() {
     return {
       valid: false,
+      resetDone: false,
       email: "",
       emailRules: [
         v => !!v || "E-mail is required",
@@ -61,6 +80,7 @@ export default {
   methods: {
     closeModal() {
       this.$emit("close");
+      this.resetDone = false;
     },
     resetPassword() {
       if (this.$refs.resetForm.validate()) {
@@ -69,7 +89,8 @@ export default {
           .sendPasswordResetEmail(this.email)
           .then(() => {
             // TODO: display notification
-            this.$emit("close");
+            this.email = "";
+            this.resetDone = true;
           })
           .catch(error => {
             console.log(error);

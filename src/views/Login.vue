@@ -66,7 +66,6 @@ export default {
     return {
       valid: false,
       isModalVisible: false,
-      isResetNotificationVisible: false,
       email: "",
       password: "",
       emailRules: [
