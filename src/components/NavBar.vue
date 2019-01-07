@@ -1,5 +1,5 @@
 <template>
-  <v-span>
+  <span>
     <v-navigation-drawer app v-model="drawer" class="primary darken-1" dark disable-resize-watcher>
       <v-list>
         <div v-if="!isAuthenticated">
@@ -48,7 +48,7 @@
         <v-btn outline @click="logout">Logout</v-btn>
       </div>
     </v-toolbar>
-  </v-span>
+  </span>
 </template>
 
 <script>

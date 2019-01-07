@@ -2,10 +2,10 @@ import "@babel/polyfill";
 import Vue from "vue";
 import "./plugins/vuetify";
 import App from "./App.vue";
+import "@/firebase";
 import router from "./router";
 import store from "./store";
 import "./registerServiceWorker";
-import "@/firebase";
 
 Vue.config.productionTip = false;
 

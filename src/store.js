@@ -4,11 +4,16 @@ import firebase from "firebase";
 import router from "@/router";
 
 Vue.use(Vuex);
+var db = firebase.firestore();
+db.settings({
+  timestampsInSnapshots: true
+});
 
 export default new Vuex.Store({
   state: {
     user: null,
-    isAuthenticated: false
+    isAuthenticated: false,
+    userSettings: null
   },
   getters: {
     isAuthenticated(state) {
@@ -16,6 +21,9 @@ export default new Vuex.Store({
     },
     getUser(state) {
       return state.user;
+    },
+    getUserSettings(state) {
+      return state.userSettings;
     }
   },
   mutations: {
@@ -24,19 +32,24 @@ export default new Vuex.Store({
     },
     setIsAuthenticated(state, payload) {
       state.isAuthenticated = payload;
+    },
+    setUserSettings(state, payload) {
+      state.userSettings = payload;
     }
   },
   actions: {
     userJoin({ commit }, { email, password }) {
-      console.log("here");
-      console.log(email);
-      console.log(password);
       firebase
         .auth()
         .createUserWithEmailAndPassword(email, password)
         .then(user => {
           commit("setUser", user);
           commit("setIsAuthenticated", true);
+          db.collection("users")
+            .doc(user.uid)
+            .onSnapshot(function(doc) {
+              commit("setUserSettings", doc.data());
+            });
           router.push("/dashboard");
         })
         .catch(() => {
@@ -50,8 +63,14 @@ export default new Vuex.Store({
         .auth()
         .signInWithEmailAndPassword(email, password)
         .then(user => {
+          console.log(user);
           commit("setUser", user);
           commit("setIsAuthenticated", true);
+          db.collection("users")
+            .doc(user.uid)
+            .onSnapshot(function(doc) {
+              commit("setUserSettings", doc.data());
+            });
           router.push("/dashboard");
         })
         .catch(() => {
