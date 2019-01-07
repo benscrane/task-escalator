@@ -1,10 +1,10 @@
 <template>
   <v-container fill-height>
     <v-layout align-center justify-center column>
-      <v-flex xs12 sm8 lg4>
+      <v-flex v-if="!userSettings.todoistLinked" xs12 sm8 lg4>
         <SettingsLinkTodoist />
       </v-flex>
-      <v-flex xs12 sm8 lg4>
+      <v-flex v-if="userSettings.todoistLinked" xs12 sm8 lg4>
         <SettingsTaskalator />
       </v-flex>
     </v-layout>
@@ -24,6 +24,9 @@ export default {
   computed: {
     user() {
       return this.$store.getters.getUser;
+    },
+    userSettings() {
+      return this.$store.getters.getUserSettings;
     }
   }
 };

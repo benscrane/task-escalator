@@ -1,16 +1,20 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import firebase from "firebase";
+import firebase from "firebase/app";
+import "firebase/firestore";
 import router from "@/router";
 
 Vue.use(Vuex);
-var db = firebase.firestore();
-db.settings({
+const firestoreSettings = {
   timestampsInSnapshots: true
-});
+};
+
+var db = firebase.firestore();
+db.settings(firestoreSettings);
 
 export default new Vuex.Store({
   state: {
+    db: db,
     user: null,
     isAuthenticated: false,
     userSettings: null
@@ -38,18 +42,14 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    userJoin({ commit }, { email, password }) {
+    userJoin({ commit, dispatch }, { email, password }) {
       firebase
         .auth()
         .createUserWithEmailAndPassword(email, password)
         .then(user => {
-          commit("setUser", user);
+          commit("setUser", user.user);
           commit("setIsAuthenticated", true);
-          db.collection("users")
-            .doc(user.uid)
-            .onSnapshot(function(doc) {
-              commit("setUserSettings", doc.data());
-            });
+          dispatch("loadUserData");
           router.push("/dashboard");
         })
         .catch(() => {
@@ -58,19 +58,14 @@ export default new Vuex.Store({
           router.push("/");
         });
     },
-    userLogin({ commit }, { email, password }) {
+    userLogin({ commit, dispatch }, { email, password }) {
       firebase
         .auth()
         .signInWithEmailAndPassword(email, password)
         .then(user => {
-          console.log(user);
-          commit("setUser", user);
+          commit("setUser", user.user);
           commit("setIsAuthenticated", true);
-          db.collection("users")
-            .doc(user.uid)
-            .onSnapshot(function(doc) {
-              commit("setUserSettings", doc.data());
-            });
+          dispatch("loadUserData");
           router.push("/dashboard");
         })
         .catch(() => {
@@ -92,6 +87,15 @@ export default new Vuex.Store({
           commit("setUser", null);
           commit("setIsAuthenticated", false);
           router.push("/");
+        });
+    },
+    async loadUserData({ commit, state }) {
+      state.db
+        .collection("users")
+        .doc(state.user.uid)
+        .onSnapshot(doc => {
+          console.log(doc.data());
+          commit("setUserSettings", doc.data());
         });
     }
   }
