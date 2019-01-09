@@ -1,11 +1,11 @@
 <template>
   <v-container fill-height>
-    <v-layout align-center justify-center column>
+    <v-layout align-center justify-center>
       <v-flex v-if="!userSettings.todoistLinked" xs12 sm8 lg4>
         <SettingsLinkTodoist />
       </v-flex>
       <v-flex v-if="userSettings.todoistLinked" xs12 sm8 lg4>
-        <SettingsTaskalator />
+        <SettingsTaskalator v-bind:userSettings="userSettings"/>
       </v-flex>
     </v-layout>
   </v-container>
