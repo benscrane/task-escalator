@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <NavBar :appTitle="this.appTitle"/>
+    <NavBar />
     <v-content transition="slide-x-transition">
       <router-view></router-view>
     </v-content>
@@ -14,11 +14,6 @@ export default {
   name: "App",
   components: {
     NavBar: NavBar
-  },
-  data() {
-    return {
-      appTitle: "Task Escalator"
-    };
   }
 };
 </script>

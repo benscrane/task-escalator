@@ -14,12 +14,16 @@ db.settings(firestoreSettings);
 
 export default new Vuex.Store({
   state: {
+    appTitle: "Task Escalator",
     db: db,
     user: null,
     isAuthenticated: false,
     userSettings: null
   },
   getters: {
+    getAppTitle(state) {
+      return state.appTitle;
+    },
     isAuthenticated(state) {
       return state.user !== null && state.user !== undefined;
     },
@@ -87,6 +91,25 @@ export default new Vuex.Store({
           commit("setUser", null);
           commit("setIsAuthenticated", false);
           router.push("/");
+        });
+    },
+    saveUserSettings({ state }, { p2Days, p3Days, p4Days }) {
+      state.db
+        .collection("users")
+        .doc(state.user.uid)
+        .set(
+          {
+            p2Days: p2Days,
+            p3Days: p3Days,
+            p4Days: p4Days
+          },
+          { merge: true }
+        )
+        .then(() => {
+          console.log("Settings saved successfully");
+        })
+        .catch(error => {
+          console.error("Error saving settings: ", error);
         });
     },
     async loadUserData({ commit, state }) {

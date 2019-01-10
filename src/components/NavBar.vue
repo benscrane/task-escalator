@@ -54,7 +54,6 @@
 <script>
 export default {
   name: "NavBar",
-  props: ["appTitle"],
   data() {
     return {
       drawer: false
@@ -63,6 +62,9 @@ export default {
   computed: {
     isAuthenticated() {
       return this.$store.getters.isAuthenticated;
+    },
+    appTitle() {
+      return this.$store.getters.getAppTitle;
     }
   },
   methods: {
