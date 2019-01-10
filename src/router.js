@@ -39,6 +39,14 @@ const router = new Router({
       meta: {
         authRequired: true
       }
+    },
+    {
+      path: "/oauth",
+      name: "oauth",
+      component: () => import("./views/TodoistOauth.vue"),
+      meta: {
+        authRequired: true
+      }
     }
   ]
 });

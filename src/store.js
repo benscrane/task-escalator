@@ -15,6 +15,7 @@ db.settings(firestoreSettings);
 export default new Vuex.Store({
   state: {
     appTitle: "Task Escalator",
+    todoistClientId: "c6f183f8c7124cabb5a15ec8fcfbba60",
     db: db,
     user: null,
     isAuthenticated: false,
@@ -23,6 +24,9 @@ export default new Vuex.Store({
   getters: {
     getAppTitle(state) {
       return state.appTitle;
+    },
+    getTodoistClientId(state) {
+      return state.todoistClientId;
     },
     isAuthenticated(state) {
       return state.user !== null && state.user !== undefined;
@@ -93,6 +97,11 @@ export default new Vuex.Store({
           router.push("/");
         });
     },
+    authSuccess({ commit, dispatch }, { user }) {
+      commit("setUser", user);
+      commit("setIsAuthenticated", true);
+      dispatch("loadUserData");
+    },
     saveUserSettings({ state }, { p2Days, p3Days, p4Days }) {
       state.db
         .collection("users")
@@ -117,7 +126,6 @@ export default new Vuex.Store({
         .collection("users")
         .doc(state.user.uid)
         .onSnapshot(doc => {
-          console.log(doc.data());
           commit("setUserSettings", doc.data());
         });
     }

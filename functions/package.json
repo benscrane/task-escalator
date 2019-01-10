@@ -10,8 +10,12 @@
     "logs": "firebase functions:log"
   },
   "dependencies": {
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
     "firebase-admin": "~5.12.1",
-    "firebase-functions": "^1.0.3"
+    "firebase-functions": "^1.0.3",
+    "request": "^2.88.0"
   },
   "devDependencies": {
     "eslint": "^4.12.0",
