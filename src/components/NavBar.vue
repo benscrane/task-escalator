@@ -35,7 +35,11 @@
       <v-toolbar-side-icon class="hidden-md-and-up" @click="drawer = !drawer"></v-toolbar-side-icon>
       <v-spacer class="hidden-md-and-up"></v-spacer>
       <router-link to="/">
-        <v-toolbar-title>{{appTitle}}</v-toolbar-title>
+        <v-toolbar-title>
+          <img
+            src="@/assets/icon_logo.png"
+            class="image-icon"/>
+        </v-toolbar-title>
       </router-link>
       <v-spacer class="hidden-sm-and-down"></v-spacer>
       <div v-if="!isAuthenticated" class="hidden-sm-and-down">
@@ -79,5 +83,8 @@ export default {
 a {
   text-decoration: none;
   color: white;
+}
+.image-icon {
+  max-height: 40px;
 }
 </style>
