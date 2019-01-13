@@ -1,7 +1,8 @@
 <template>
   <span>
     <HomeHero />
-    <HomeDetails />
+    <HomeDetails 
+      id="homeDetails"/>
   </span>
 </template>
 

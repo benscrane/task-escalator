@@ -1,6 +1,7 @@
 import "@babel/polyfill";
 import Vue from "vue";
 import "./plugins/vuetify";
+import "./plugins/vue-scrollto";
 import App from "./App.vue";
 import "@/firebase";
 import firebase from "firebase/app";

@@ -9,7 +9,7 @@
       <div class="display-1 font-weight-bold accent--text text-xs-center">
         An extension for Todoist
       </div>
-      <v-btn fab class="mt-5 accent darken-1">
+      <v-btn fab class="mt-5 accent darken-1" v-scroll-to="'#homeDetails'">
         <v-icon large color="white">mdi-chevron-down</v-icon>
       </v-btn>
     </v-layout>
