@@ -80,16 +80,75 @@ exports.processTaskChanges = functions.https.onRequest((request, response) => {
     response.status(200).send();
   }
   console.log(request.body);
+  var taskId = String(request.body.event_data.id);
+  var userUid = "";
   //Get the user document from the todoist ID (request.body.user_id)
   var userQuery = db
     .collection("users")
     .where("todoistUserId", "==", Number(request.body.user_id))
-    .get()
+    .get();
+  var userDocId = userQuery
     .then(querySnapshot => {
-      console.log(querySnapshot.docs[0].id);
-      return true;
+      userUid = querySnapshot.docs[0].id;
+      return userUid;
+    })
+    .catch(error => {
+      console.error(error);
+    });
+  // get the tracked tasks collection from the user's document
+  var trackedTasksCollection = userDocId
+    .then(docId => {
+      return db
+        .collection("users")
+        .doc(docId)
+        .collection("trackedTasks");
+    })
+    .catch(error => {
+      console.error(error);
+    });
+  // get the tracked task document with the todoist task ID
+  var existingTask = trackedTasksCollection
+    .then(collection => {
+      return collection.doc(taskId).get();
+    })
+    .catch(error => {
+      console.error(error);
+    });
+  // get a true or false value based on whether a document with the todoist task id exists
+  var doesTaskExist = existingTask
+    .then(docSnapshot => {
+      return docSnapshot.exists;
+    })
+    .catch(error => {
+      console.error(error);
+    });
+  // depending on whether the task document exists, execute the appropriate logic
+  doesTaskExist
+    .then(exists => {
+      console.log(`Task exists: ${exists}`);
+      if (exists) {
+        //task exists, compare and update document appropriately
+      } else {
+        //task document doesn't exist, add to tracked tasks
+        console.log("Add document");
+        var documentData = {
+          is_archived: request.body.event_data.is_archived,
+          content: request.body.event_data.content,
+          due_date_utc: request.body.event_data.due_date_utc,
+          priority: request.body.event_data.priority
+        };
+        return db
+          .collection("users")
+          .doc(userUid)
+          .collection("trackedTasks")
+          .doc(taskId)
+          .set(documentData, { merge: true });
+      }
+      return exists;
+    })
+    .catch(error => {
+      console.error(error);
     });
   // Check if the task exists already in the database
-  const trackedTasksCollection = db.collection("users");
   response.status(200).send();
 });
