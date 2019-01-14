@@ -1,13 +1,11 @@
 const functions = require("firebase-functions");
-const admin = require("firebase-admin");
+const { db } = require("./src/admin");
+const createUserDocument = require("./src/createUserDocument");
+const processTaskChanges = require("./src/processTaskChanges");
 const express = require("express");
 const cors = require("cors");
 const request = require("request");
 const bodyParser = require("body-parser");
-
-admin.initializeApp(functions.config().firebase);
-
-var db = admin.firestore();
 
 const app = express();
 
@@ -58,120 +56,8 @@ app.get("/:code/:uid", (req, res) => {
   });
 });
 
-exports.createUserDocument = functions.auth.user().onCreate(user => {
-  var docRef = db.collection("users").doc(user.uid);
-  var setUser = docRef.set(
-    {
-      todoistLinked: false
-    },
-    { merge: true }
-  );
-  return setUser;
-});
+exports.createUserDocument = functions.auth.user().onCreate(createUserDocument);
 
 exports.processTodoistOauth = functions.https.onRequest(app);
 
-/**
- * Summary. Filters incoming event data from todoist webhooks
- * Description. Filters out events that are not item:added or item:updated
- * @param  {object} eventData  Object containing the incoming event data to evaluate
- * @returns {boolean} True if the task should be filtered out, false if the task should be evaluated further
- */
-function filterTask(eventData) {
-  // check event type, filter anything that's not added or updated
-  if (
-    !(
-      eventData.event_name === "item:updated" ||
-      eventData.event_name === "item:added"
-    )
-  ) {
-    console.log("filter task match");
-    return true;
-  }
-  // passed all checks, don't filter
-  return false;
-}
-
-async function loadUserData(eventData) {
-  //TODO write function
-}
-
-exports.processTaskChanges = functions.https.onRequest((request, response) => {
-  // filter out tasks
-  if (filterTask(request.body)) {
-    response.status(200).send();
-  } else {
-    console.log(request.body);
-  }
-  var taskId = String(request.body.event_data.id);
-  var userUid = "";
-  //Get the user document from the todoist ID (request.body.user_id)
-  var userQuery = db
-    .collection("users")
-    .where("todoistUserId", "==", Number(request.body.user_id))
-    .get();
-  var userDocId = userQuery
-    .then(querySnapshot => {
-      userUid = querySnapshot.docs[0].id;
-      return userUid;
-    })
-    .catch(error => {
-      console.error(error);
-    });
-  // get the tracked tasks collection from the user's document
-  var trackedTasksCollection = userDocId
-    .then(docId => {
-      return db
-        .collection("users")
-        .doc(docId)
-        .collection("trackedTasks");
-    })
-    .catch(error => {
-      console.error(error);
-    });
-  // get the tracked task document with the todoist task ID
-  var existingTask = trackedTasksCollection
-    .then(collection => {
-      return collection.doc(taskId).get();
-    })
-    .catch(error => {
-      console.error(error);
-    });
-  // get a true or false value based on whether a document with the todoist task id exists
-  var doesTaskExist = existingTask
-    .then(docSnapshot => {
-      return docSnapshot.exists;
-    })
-    .catch(error => {
-      console.error(error);
-    });
-  // depending on whether the task document exists, execute the appropriate logic
-  doesTaskExist
-    .then(exists => {
-      console.log(`Task exists: ${exists}`);
-      if (exists) {
-        //task exists, compare and update document appropriately
-      } else {
-        //task document doesn't exist, add to tracked tasks
-        console.log("Add document");
-        var documentData = {
-          is_archived: request.body.event_data.is_archived,
-          content: request.body.event_data.content,
-          due_date_utc: request.body.event_data.due_date_utc,
-          priority: request.body.event_data.priority
-        };
-        return db
-          .collection("users")
-          .doc(userUid)
-          .collection("trackedTasks")
-          .doc(taskId)
-          .set(documentData, { merge: true });
-      }
-      return exists;
-    })
-    .catch(error => {
-      console.error(error);
-    });
-  // Check if the task exists already in the database
-  response.status(200).send();
-});
+exports.processTaskChanges = functions.https.onRequest(processTaskChanges);
