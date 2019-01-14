@@ -71,15 +71,38 @@ exports.createUserDocument = functions.auth.user().onCreate(user => {
 
 exports.processTodoistOauth = functions.https.onRequest(app);
 
-exports.processTaskChanges = functions.https.onRequest((request, response) => {
-  // We only care about item:updated and item:added
+/**
+ * Summary. Filters incoming event data from todoist webhooks
+ * Description. Filters out events that are not item:added or item:updated
+ * @param  {object} eventData  Object containing the incoming event data to evaluate
+ * @returns {boolean} True if the task should be filtered out, false if the task should be evaluated further
+ */
+function filterTask(eventData) {
+  // check event type, filter anything that's not added or updated
   if (
-    request.body.event_name !== "item:updated" &&
-    request.body.event_name !== "item:added"
+    !(
+      eventData.event_name === "item:updated" ||
+      eventData.event_name === "item:added"
+    )
   ) {
-    response.status(200).send();
+    console.log("filter task match");
+    return true;
   }
-  console.log(request.body);
+  // passed all checks, don't filter
+  return false;
+}
+
+async function loadUserData(eventData) {
+  //TODO write function
+}
+
+exports.processTaskChanges = functions.https.onRequest((request, response) => {
+  // filter out tasks
+  if (filterTask(request.body)) {
+    response.status(200).send();
+  } else {
+    console.log(request.body);
+  }
   var taskId = String(request.body.event_data.id);
   var userUid = "";
   //Get the user document from the todoist ID (request.body.user_id)
