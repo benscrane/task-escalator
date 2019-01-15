@@ -1,4 +1,6 @@
 const { db } = require("./admin.js");
+const request = require("request");
+const uuidv4 = require("uuid/v4");
 
 /**
  * Summary. Filters incoming event data from todoist webhooks
@@ -15,6 +17,14 @@ function filterTask(eventData) {
     )
   ) {
     console.log("filter task match");
+    return true;
+  }
+  // filter out tasks with no due date
+  if (eventData.event_data.due_date_utc === null) {
+    return true;
+  }
+  // filter out recurring tasks, for now just look for "every" in the date string
+  if (eventData.event_data.date_string.indexOf("every") !== -1) {
     return true;
   }
   // passed all checks, don't filter
@@ -53,18 +63,104 @@ function loadUserData(todoistUserId) {
  */
 function determineActionNeeded(event_data, user_settings) {
   // determine if task exists as a tracked task
-  var actionNeeded = loadTask(event_data.event_data.id, user_settings.doc_id)
+  var taskDocumentSnapshot = null;
+  var shouldTaskAddPromise = loadTask(
+    event_data.event_data.id,
+    user_settings.doc_id
+  )
     .then(taskDocSnapshot => {
       if (!taskDocSnapshot.exists) {
         return "ADD_TASK";
       } else {
-        return "FINISH_WRITING";
+        // existing document exists, determine next action
+        taskDocumentSnapshot = taskDocSnapshot;
+        return "CONTINUE_EVALUATION";
       }
     })
     .catch(error => {
       console.error(error);
     });
-  return actionNeeded;
+  var shouldTaskEscalatePromise = shouldTaskAddPromise
+    .then(actionNeeded => {
+      if (actionNeeded === "ADD_TASK") {
+        return actionNeeded;
+      } else {
+        return shouldTaskEscalate(
+          event_data,
+          user_settings,
+          taskDocumentSnapshot
+        );
+      }
+    })
+    .catch(error => {
+      console.error(error);
+    });
+  var shouldTaskUpdatePromise = shouldTaskEscalatePromise
+    .then(actionNeeded => {
+      if (actionNeeded === "ADD_TASK" || actionNeeded === "ESCALATE_TASK") {
+        return actionNeeded;
+      } else {
+        return shouldTaskUpdate(event_data, taskDocumentSnapshot);
+      }
+    })
+    .catch(error => {
+      console.error(error);
+    });
+  return shouldTaskUpdatePromise;
+}
+
+/**
+ * Summary. Determines if a task should be updated in the tracked tasks database
+ * @param  {object} event_data
+ * @param  {documentSnapshot} taskDocSnapshot
+ * @returns {string} UPDATE_TASK if the task should be updated, NO_ACTION if not
+ */
+function shouldTaskUpdate(event_data, taskDocSnapshot) {
+  var taskDocData = taskDocSnapshot.data();
+  if (event_data.event_data.priority !== taskDocData.current_priority) {
+    return "UPDATE_TASK";
+  }
+  if (event_data.event_data.content !== taskDocData.content) {
+    return "UPDATE_TASK";
+  }
+  if (event_data.event_data.due_date_utc !== taskDocData.current_due_date_utc) {
+    return "UPDATE_TASK";
+  }
+  return "NO_ACTION";
+}
+
+/**
+ * Summary. Determines if an incoming task should be escalated
+ * @param  {object} event_data
+ * @param  {object} user_settings
+ * @param  {documentSnapshot} taskDocSnapshot
+ * @returns {boolean} True if task should be escalated, false if not
+ */
+function shouldTaskEscalate(event_data, user_settings, taskDocSnapshot) {
+  // can't escalate if it's already top priority
+  if (event_data.event_data.priority === 4) {
+    return "CONTINUE_EVALUATION";
+  }
+  // check if priority is unchanged
+  var taskDocData = taskDocSnapshot.data();
+  if (taskDocData.current_priority === event_data.event_data.priority) {
+    // priorities match
+    var incomingDueDate = new Date(event_data.event_data.due_date_utc);
+    var currentDueDate = new Date(taskDocData.current_due_date_utc);
+    var daysBeforeEscalation =
+      user_settings[`p${5 - event_data.event_data.priority}Days`];
+    var dueDateDifference =
+      incomingDueDate.getTime() - currentDueDate.getTime();
+    var msBeforeEscalation = daysBeforeEscalation * 24 * 60 * 60 * 1000;
+    if (dueDateDifference > msBeforeEscalation) {
+      return "ESCALATE_TASK";
+    } else {
+      return "CONTINUE_EVALUATION";
+    }
+  } else {
+    // priorities don't match, escalation isn't appropriate
+    return "CONTINUE_EVALUATION";
+  }
 }
 
 /**
@@ -84,23 +180,97 @@ function loadTask(taskId, userUid) {
 
 /**
  * Summary. Adds a task to the tracked tasks collection in a user document
+ * Description. This can also handle updates
  * @param  {object} event_data  Incoming event data object
  * @param  {object} user_settings User settings object
+ * @param  {string} action  Action to take, ADD_NEW or UPDATE_EXISTING
  */
-function addTrackedTask(event_data, user_settings) {
+function addTrackedTask(event_data, user_settings, action) {
   var documentData = {
     content: event_data.event_data.content,
     current_priority: event_data.event_data.priority,
-    current_due_date_utc: event_data.event_data.due_date_utc,
-    original_priority: event_data.event_data.priority,
-    original_due_date_utc: event_data.event_data.due_date_utc
+    current_due_date_utc: event_data.event_data.due_date_utc
   };
+  if (action === "ADD_NEW") {
+    documentData.original_priority = event_data.event_data.priority;
+    documentData.original_due_date_utc = event_data.event_data.due_date_utc;
+  }
   return db
     .collection("users")
     .doc(user_settings.doc_id)
     .collection("trackedTasks")
     .doc(String(event_data.event_data.id))
     .set(documentData, { merge: true });
+}
+
+/**
+ * Summary. Adds an escalated task to the database
+ * @param {object} event_data
+ * @param {object} user_settings
+ */
+function addEscalatedTask(event_data, user_settings) {
+  var documentData = {
+    content: event_data.event_data.content,
+    tracked_task_id: event_data.event_data.id,
+    previous_priority: event_data.event_data.priority
+  };
+  var timestamp = new Date().getTime();
+  var addEscalatedTaskPromise = db
+    .collection("users")
+    .doc(user_settings.doc_id)
+    .collection("escalatedTasks")
+    .doc(String(timestamp))
+    .set(documentData, { merge: true });
+  var updateEscalatedTaskPromise = addEscalatedTaskPromise
+    .then(() => {
+      event_data.event_data.priority = event_data.event_data.priority + 1;
+      return addTrackedTask(event_data, user_settings, "UPDATE_EXISTING");
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  //TODO: increment the distributed counter here
+  return updateEscalatedTaskPromise;
+}
+
+/**
+ * @param  {object} event_data
+ * @param  {object} user_settings
+ */
+function escalateTrackedTask(event_data, user_settings) {
+  var uuid = uuidv4();
+  var commands = [
+    {
+      type: "item_update",
+      uuid: uuid,
+      args: {
+        id: event_data.event_data.id,
+        priority: event_data.event_data.priority + 1
+      }
+    }
+  ];
+  var commandString = JSON.stringify(commands);
+  var options = {
+    url: `https://todoist.com/api/v7/sync?token=${
+      user_settings.oauthToken
+    }&commands=${commandString}`,
+    method: "POST"
+  };
+  request(options, (error, response, body) => {
+    console.log(response);
+    console.log(body);
+    if (!error && response.statusCode === 200) {
+      var syncBody = JSON.parse(body);
+      if (syncBody.sync_status[uuid] === "ok") {
+        // successful update
+        return addEscalatedTask(event_data, user_settings);
+      }
+      return false;
+    } else {
+      console.log(error);
+      return false;
+    }
+  });
 }
 
 function processTaskChanges(request, response) {
@@ -127,11 +297,18 @@ function processTaskChanges(request, response) {
       .then(actionNeeded => {
         switch (actionNeeded) {
           case "ADD_TASK":
-            return addTrackedTask(request.body, userSettings);
+            console.log("Add task");
+            return addTrackedTask(request.body, userSettings, "ADD_NEW");
           case "ESCALATE_TASK":
-            return true;
+            console.log("Escalate task");
+            return escalateTrackedTask(request.body, userSettings);
           case "UPDATE_TASK":
-            return true;
+            console.log("Update task");
+            return addTrackedTask(
+              request.body,
+              userSettings,
+              "UPDATE_EXISTING"
+            );
           default:
             console.log("Hit default case");
             return true;
