@@ -14,12 +14,12 @@
       <v-card-actions>
         <v-btn
           color="accent"
-          @click="editing = true"
+          @click="editing = !editing"
           v-if="!editing">Edit</v-btn>
         <v-btn
           color="secondary"
-          @click="editing = false"
-          v-if="editing">Cancel<v-btn>
+          @click="editing = !editing"
+          v-if="editing">Cancel</v-btn>
         <v-spacer></v-spacer>
         <v-btn
           color="primary"
