@@ -19,7 +19,9 @@ export default new Vuex.Store({
     db: db,
     user: null,
     isAuthenticated: false,
-    userSettings: null
+    userSettings: null,
+    recentEscalatedTasks: [],
+    userTotalEscalated: null
   },
   getters: {
     getAppTitle(state) {
@@ -36,6 +38,12 @@ export default new Vuex.Store({
     },
     getUserSettings(state) {
       return state.userSettings;
+    },
+    getRecentEscalatedTasks(state) {
+      return state.recentEscalatedTasks;
+    },
+    getUserTotalEscalated(state) {
+      return state.userTotalEscalated;
     }
   },
   mutations: {
@@ -47,6 +55,13 @@ export default new Vuex.Store({
     },
     setUserSettings(state, payload) {
       state.userSettings = payload;
+    },
+    setRecentEscalatedTasks(state, payload) {
+      // array of recently updated tasks
+      state.recentEscalatedTasks = payload;
+    },
+    setUserTotalEscalated(state, payload) {
+      state.userTotalEscalated = payload;
     }
   },
   actions: {
@@ -121,13 +136,44 @@ export default new Vuex.Store({
           console.error("Error saving settings: ", error);
         });
     },
-    async loadUserData({ commit, state }) {
+    async loadUserData({ commit, state, dispatch }) {
       state.db
         .collection("users")
         .doc(state.user.uid)
         .onSnapshot(doc => {
           commit("setUserSettings", doc.data());
         });
+      dispatch("loadRecentEscalatedTasks");
+      dispatch("loadUserTotalEscalatedTasks");
+    },
+    async loadRecentEscalatedTasks({ commit, state }) {
+      var escalatedTasksRef = state.db
+        .collection("users")
+        .doc(state.user.uid)
+        .collection("escalatedTasks");
+      escalatedTasksRef.limit(10).onSnapshot(querySnapshot => {
+        if (!querySnapshot.empty) {
+          // we have results, commit them
+          var docDataArr = [];
+          querySnapshot.docs.forEach(documentSnapshot => {
+            var tempDocData = documentSnapshot.data();
+            tempDocData.doc_id = documentSnapshot.id;
+            docDataArr.push(tempDocData);
+          });
+          commit("setRecentEscalatedTasks", docDataArr);
+        } else {
+          commit("setRecentEscalatedTasks", []);
+        }
+      });
+    },
+    async loadUserTotalEscalatedTasks({ commit, state }) {
+      var escalatedTasksRef = state.db
+        .collection("users")
+        .doc(state.user.uid)
+        .collection("escalatedTasks");
+      escalatedTasksRef.onSnapshot(querySnapshot => {
+        commit("setUserTotalEscalated", querySnapshot.size);
+      });
     }
   }
 });

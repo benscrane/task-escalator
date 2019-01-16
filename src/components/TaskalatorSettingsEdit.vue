@@ -1,5 +1,8 @@
 <template>
   <v-card-text>
+    <p class="subheading">
+      Set the number of days that a task of a certain priority can be postponed before it is escalated.
+    </p>
         <v-form
           ref="form"
           lazy-validation

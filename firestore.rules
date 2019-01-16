@@ -3,5 +3,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth.uid == userId;
     }
+    match /users/{userId}/escalatedTasks/{escalatedTask} {
+      allow read: if request.auth.uid == userId;
+    }
   }
 }
