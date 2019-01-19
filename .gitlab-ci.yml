@@ -1,0 +1,27 @@
+image: node:8.11.3
+
+stages:
+  - ver
+  - tests
+  - deploy
+
+ver:
+  stage: ver
+  script:
+    - node --version
+    - whoami
+
+run_test:
+  stage: tests
+  script:
+    - echo "Add tests later"
+
+deploy:
+  stage: deploy
+  script:
+    - npm install
+    - npm install --prefix ./functions
+    - npm run build
+    - npm run deploy
+  only:
+    - master
