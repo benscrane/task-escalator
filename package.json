@@ -6,7 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "deploy": "firebase deploy --non-interactive --token $FIREBASE_TOKEN"
+    "deploy_production": "firebase deploy -P default --non-interactive --token $FIREBASE_TOKEN"
   },
   "dependencies": {
     "@babel/polyfill": "^7.0.0-rc.1",
