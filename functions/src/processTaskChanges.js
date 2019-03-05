@@ -146,7 +146,9 @@ function shouldTaskEscalate(event_data, user_settings, taskDocSnapshot) {
   if (taskDocData.current_priority === event_data.event_data.priority) {
     // priorities match
     var incomingDueDate = new Date(event_data.event_data.due_date_utc);
+    console.log(`Incoming due date: ${incomingDueDate}`);
     var currentDueDate = new Date(taskDocData.current_due_date_utc);
+    console.log(`Current due date: ${currentDueDate}`);
     var daysBeforeEscalation =
       user_settings[`p${5 - event_data.event_data.priority}Days`];
     console.log(`Days before escalation: ${daysBeforeEscalation}`);
