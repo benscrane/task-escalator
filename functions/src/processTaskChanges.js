@@ -193,12 +193,15 @@ function loadTask(taskId, userUid) {
 function addTrackedTask(event_data, user_settings, action) {
   var documentData = {
     content: event_data.event_data.content,
-    current_priority: event_data.event_data.priority,
-    current_due_date_utc: event_data.event_data.due_date_utc
+    current_priority: event_data.event_data.priority
   };
   if (action === "ADD_NEW") {
     documentData.original_priority = event_data.event_data.priority;
     documentData.original_due_date_utc = event_data.event_data.due_date_utc;
+    documentData.current_due_date_utc = event_data.event_data.due_date_utc;
+  }
+  if (action === "UPDATE_ESCALATED") {
+    documentData.current_due_date_utc = event_data.event_data.due_date_utc;
   }
   return db
     .collection("users")
@@ -229,7 +232,7 @@ function addEscalatedTask(event_data, user_settings) {
   var updateEscalatedTaskPromise = addEscalatedTaskPromise
     .then(() => {
       event_data.event_data.priority = event_data.event_data.priority + 1;
-      return addTrackedTask(event_data, user_settings, "UPDATE_EXISTING");
+      return addTrackedTask(event_data, user_settings, "UPDATE_ESCALATED");
     })
     .catch(error => {
       console.log(error);
