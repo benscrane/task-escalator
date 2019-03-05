@@ -149,9 +149,12 @@ function shouldTaskEscalate(event_data, user_settings, taskDocSnapshot) {
     var currentDueDate = new Date(taskDocData.current_due_date_utc);
     var daysBeforeEscalation =
       user_settings[`p${5 - event_data.event_data.priority}Days`];
+    console.log(`Days before escalation: ${daysBeforeEscalation}`);
     var dueDateDifference =
       incomingDueDate.getTime() - currentDueDate.getTime();
+    console.log(`Due date difference: ${dueDateDifference}`);
     var msBeforeEscalation = daysBeforeEscalation * 24 * 60 * 60 * 1000;
+    console.log(`MS difference: ${msBeforeEscalation}`);
     if (dueDateDifference > msBeforeEscalation) {
       return "ESCALATE_TASK";
     } else {
