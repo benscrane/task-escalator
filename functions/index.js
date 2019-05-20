@@ -15,8 +15,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.get("/:code/:uid", (req, res) => {
   var code = req.params.code;
   var uid = req.params.uid;
-  var client_id = "c6f183f8c7124cabb5a15ec8fcfbba60";
-  var client_secret = "e8dc8282fdc847efa4288158b709e594";
+  var client_id = functions.config().todoist.client_id;
+  var client_secret = functions.config().todoist.client_secret;
   var oauthOptions = {
     url: `https://todoist.com/oauth/access_token?code=${code}&client_id=${client_id}&client_secret=${client_secret}`,
     method: "POST"
