@@ -1,6 +1,6 @@
 {
-  "name": "task-escalator",
-  "short_name": "task-escalator",
+  "name": "Task Escalator",
+  "short_name": "Task Escalator",
   "icons": [
     {
       "src": "./img/icons/android-chrome-192x192.png",
