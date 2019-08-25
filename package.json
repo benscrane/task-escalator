@@ -9,27 +9,27 @@
     "deploy_production": "firebase deploy -P default --non-interactive --token $FIREBASE_TOKEN"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.0.0-rc.1",
-    "axios": "^0.18.0",
-    "firebase": "^5.11.1",
-    "register-service-worker": "^1.5.2",
+    "@babel/polyfill": "^7.4.4",
+    "axios": "^0.18.1",
+    "firebase": "^6.4.2",
+    "register-service-worker": "^1.6.2",
     "vue": "^2.6.10",
     "vue-router": "^3.1.2",
-    "vue-scrollto": "^2.13.0",
-    "vuetify": "^1.3.0",
-    "vuex": "^3.0.1"
+    "vue-scrollto": "^2.15.0",
+    "vuetify": "^1.5.18",
+    "vuex": "^3.1.1"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^3.2.0",
-    "@vue/cli-plugin-eslint": "^3.2.0",
-    "@vue/cli-plugin-pwa": "^3.2.0",
-    "@vue/cli-service": "^3.2.0",
+    "@vue/cli-plugin-babel": "^3.11.0",
+    "@vue/cli-plugin-eslint": "^3.11.0",
+    "@vue/cli-plugin-pwa": "^3.11.0",
+    "@vue/cli-service": "^3.11.0",
     "@vue/eslint-config-prettier": "^4.0.0",
-    "babel-eslint": "^10.0.1",
+    "babel-eslint": "^10.0.2",
     "eslint": "^6.2.2",
-    "eslint-plugin-vue": "^5.0.0-0",
-    "firebase-tools": "^6.12.0",
+    "eslint-plugin-vue": "^5.2.3",
+    "firebase-tools": "^7.2.4",
     "vue-cli-plugin-vuetify": "^0.4.6",
-    "vue-template-compiler": "^2.5.17"
+    "vue-template-compiler": "^2.6.10"
   }
 }
