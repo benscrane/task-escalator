@@ -1,10 +1,9 @@
 <template>
   <v-container fluid fill-height class="home-hero">
     <v-layout justify-center align-center column pa-5>
-      <div class="display-4 font-weight-black primary--text text--lighten-2 text-xs-center appTitle">
-        <img 
-          src="@/assets/logo.png"
-          class="main-logo"/>
+      <div
+        class="display-4 font-weight-black primary--text text--lighten-2 text-xs-center appTitle">
+        <img src="@/assets/logo.png" class="main-logo" />
       </div>
       <div class="display-1 font-weight-bold accent--text text-xs-center">
         An extension for Todoist
