@@ -1,8 +1,7 @@
 <template>
   <span>
     <HomeHero />
-    <HomeDetails 
-      id="homeDetails"/>
+    <HomeDetails id="homeDetails"/>
   </span>
 </template>
 
@@ -18,6 +17,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-</style>
