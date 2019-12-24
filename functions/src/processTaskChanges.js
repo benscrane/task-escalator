@@ -282,6 +282,7 @@ function escalateTrackedTask(event_data, user_settings) {
 }
 
 function processTaskChanges(request, response) {
+  console.log(request);
   // filter out tasks
   if (filterTask(request.body)) {
     // task is filtered out
