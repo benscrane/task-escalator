@@ -9,6 +9,7 @@ const uuidv4 = require("uuid/v4");
  * @returns {boolean} True if the task should be filtered out, false if the task should be evaluated further
  */
 function filterTask(eventData) {
+  console.log(eventData);
   // check event type, filter anything that's not added or updated
   if (
     !(
