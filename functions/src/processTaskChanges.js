@@ -1,6 +1,7 @@
 const { db } = require("./admin.js");
 const request = require("request");
 const uuidv4 = require("uuid/v4");
+const _ = require("lodash");
 
 /**
  * Summary. Filters incoming event data from todoist webhooks
@@ -10,22 +11,20 @@ const uuidv4 = require("uuid/v4");
  */
 function filterTask(eventData) {
   console.log(eventData);
-  // check event type, filter anything that's not added or updated
-  if (
-    !(
-      eventData.event_name === "item:updated" ||
-      eventData.event_name === "item:added"
-    )
-  ) {
-    console.log("filter task match");
+  // check event type, filter out anything that's not added or updated
+  const eventName = _.get(eventData, "event_name");
+  if (!["item:updated", "item:added"].includes(eventName)) {
     return true;
   }
   // filter out tasks with no due date
-  if (eventData.event_data.due_date_utc === null) {
+  const dueData = _.get(eventData, "event_data.due") || {};
+  const dueDate = _.get(dueData, "date") || null;
+  if (dueDate === null) {
     return true;
   }
   // filter out recurring tasks, for now just look for "every" in the date string
-  if (eventData.event_data.date_string.indexOf("every") !== -1) {
+  const recurring = _.get(dueData, "is_recurring") || false;
+  if (recurring) {
     return true;
   }
   // passed all checks, don't filter
