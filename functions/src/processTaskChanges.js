@@ -2,6 +2,7 @@ const { db } = require("./admin.js");
 const request = require("request");
 const uuidv4 = require("uuid/v4");
 const _ = require("lodash");
+const moment = require("moment-timezone");
 
 /**
  * Summary. Filters incoming event data from todoist webhooks
@@ -122,7 +123,9 @@ function shouldTaskUpdate(event_data, taskDocSnapshot) {
   if (event_data.event_data.content !== taskDocData.content) {
     return "UPDATE_TASK";
   }
-  if (event_data.event_data.due_date_utc !== taskDocData.current_due_date_utc) {
+  const date =  _.get(event_data, "event_data.due.date");
+  const tz = _.get(event_data, "event_data.due.timezone");
+  if (moment.tz(date, tz).utc().format() !== taskDocData.current_due_date_utc) {
     return "UPDATE_TASK";
   }
   return "NO_ACTION";
@@ -144,7 +147,9 @@ function shouldTaskEscalate(event_data, user_settings, taskDocSnapshot) {
   var taskDocData = taskDocSnapshot.data();
   if (taskDocData.current_priority === event_data.event_data.priority) {
     // priorities match
-    var incomingDueDate = new Date(event_data.event_data.due_date_utc);
+    const date = _.get(event_data, "event_data.due.date");
+    const tz = _.get(event_data, "event_data.due.timezone");
+    var incomingDueDate = new Date(moment.tz(date, tz).utc().format());
     console.log(`Incoming due date: ${incomingDueDate}`);
     var currentDueDate = new Date(taskDocData.current_due_date_utc);
     console.log(`Current due date: ${currentDueDate}`);
@@ -193,17 +198,22 @@ function addTrackedTask(event_data, user_settings, action) {
   console.log(event_data);
   console.log(user_settings);
   console.log(action);
+  const content = _.get(event_data, "event_data.content");
+  const currentPriority = _.get(event_data, "event_data.priority");
   var documentData = {
-    content: event_data.event_data.content,
-    current_priority: event_data.event_data.priority
+    content,
+    current_priority: currentPriority,
   };
+  const dateData = _.get(event_data, "event_data.due");
+    const date = _.get(dateData, "date");
+    const tz = _.get(dateData, "timezone");
   if (action === "ADD_NEW") {
-    documentData.original_priority = event_data.event_data.priority;
-    documentData.original_due_date_utc = event_data.event_data.due_date_utc;
-    documentData.current_due_date_utc = event_data.event_data.due_date_utc;
+    documentData.original_priority = currentPriority; // original and current priority are the same
+    documentData.original_due_date_utc = moment.tz(date, tz).utc().format();
+    documentData.current_due_date_utc = moment.tz(date, tz).utc().format();
   }
   if (action === "UPDATE_ESCALATED") {
-    documentData.current_due_date_utc = event_data.event_data.due_date_utc;
+    documentData.current_due_date_utc = moment.tz(date, tz).utc().format();
   }
   return db
     .collection("users")
