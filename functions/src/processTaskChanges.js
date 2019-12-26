@@ -18,7 +18,7 @@ const rollbar = new Rollbar({
  * @returns {boolean} True if the task should be filtered out, false if the task should be evaluated further
  */
 function filterOutTask(eventData) {
-  rollbar.info(eventData);
+  // rollbar.info(eventData);
   // check event type, filter out anything that's not added or updated
   const eventName = _.get(eventData, "event_name");
   if (!["item:updated", "item:added"].includes(eventName)) {
@@ -302,7 +302,7 @@ function escalateTrackedTask(event_data, user_settings) {
 
 function processTaskChanges(request, response) {
   // filter out tasks
-  rollbar.info("Log request", request);
+  // rollbar.info("Log request", request);
   if (filterOutTask(request.body)) {
     response.status(200).send();
   } else {
