@@ -9,7 +9,7 @@ const _ = require("lodash");
  * @param  {object} eventData  Object containing the incoming event data to evaluate
  * @returns {boolean} True if the task should be filtered out, false if the task should be evaluated further
  */
-function filterTask(eventData) {
+function filterOutTask(eventData) {
   console.log(eventData);
   // check event type, filter out anything that's not added or updated
   const eventName = _.get(eventData, "event_name");
@@ -37,7 +37,6 @@ function filterTask(eventData) {
  * @returns {object} The user's task escalator settings
  */
 function loadUserData(todoistUserId) {
-  //TODO write function
   var userQuery = db
     .collection("users")
     .where("todoistUserId", "==", todoistUserId)
@@ -191,6 +190,9 @@ function loadTask(taskId, userUid) {
  * @param  {string} action  Action to take, ADD_NEW or UPDATE_EXISTING
  */
 function addTrackedTask(event_data, user_settings, action) {
+  console.log(event_data);
+  console.log(user_settings);
+  console.log(action);
   var documentData = {
     content: event_data.event_data.content,
     current_priority: event_data.event_data.priority
@@ -282,13 +284,10 @@ function escalateTrackedTask(event_data, user_settings) {
 }
 
 function processTaskChanges(request, response) {
-  console.log(request);
   // filter out tasks
-  if (filterTask(request.body)) {
-    // task is filtered out
+  if (filterOutTask(request.body)) {
     response.status(200).send();
   } else {
-    console.log(request.body);
     var userSettings = {};
     //Get the user document from the todoist ID (request.body.user_id)
     var loadDataPromise = loadUserData(request.body.user_id);
