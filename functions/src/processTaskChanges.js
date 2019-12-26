@@ -302,6 +302,7 @@ function escalateTrackedTask(event_data, user_settings) {
 
 function processTaskChanges(request, response) {
   // filter out tasks
+  rollbar.info(request.body);
   if (filterOutTask(request.body)) {
     response.status(200).send();
   } else {
