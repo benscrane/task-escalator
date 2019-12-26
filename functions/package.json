@@ -21,6 +21,7 @@
     "lodash": "^4.17.15",
     "moment-timezone": "^0.5.27",
     "request": "^2.88.0",
+    "rollbar": "^2.14.4",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

@@ -3,6 +3,13 @@ const request = require("request");
 const uuidv4 = require("uuid/v4");
 const _ = require("lodash");
 const moment = require("moment-timezone");
+const functions = require("firebase-functions");
+const Rollbar = require("rollbar");
+const rollbar = new Rollbar({
+  accessToken: functions.config().rollbar.access_token,
+  captureUncaught: true,
+  captureUnhandledRejections: true,
+});
 
 /**
  * Summary. Filters incoming event data from todoist webhooks
@@ -11,7 +18,7 @@ const moment = require("moment-timezone");
  * @returns {boolean} True if the task should be filtered out, false if the task should be evaluated further
  */
 function filterOutTask(eventData) {
-  console.log(eventData);
+  rollbar.info(eventData);
   // check event type, filter out anything that's not added or updated
   const eventName = _.get(eventData, "event_name");
   if (!["item:updated", "item:added"].includes(eventName)) {
@@ -50,7 +57,7 @@ function loadUserData(todoistUserId) {
       return settingsObj;
     })
     .catch(error => {
-      console.error(error);
+      rollbar.error(error);
     });
   return userSettings;
 }
@@ -78,7 +85,7 @@ function determineActionNeeded(event_data, user_settings) {
       }
     })
     .catch(error => {
-      console.error(error);
+      rollbar.error(error);
     });
   var shouldTaskEscalatePromise = shouldTaskAddPromise
     .then(actionNeeded => {
@@ -93,7 +100,7 @@ function determineActionNeeded(event_data, user_settings) {
       }
     })
     .catch(error => {
-      console.error(error);
+      rollbar.error(error);
     });
   var shouldTaskUpdatePromise = shouldTaskEscalatePromise
     .then(actionNeeded => {
@@ -104,7 +111,7 @@ function determineActionNeeded(event_data, user_settings) {
       }
     })
     .catch(error => {
-      console.error(error);
+      rollbar.error(error);
     });
   return shouldTaskUpdatePromise;
 }
@@ -308,7 +315,7 @@ function processTaskChanges(request, response) {
         return determineActionNeeded(request.body, settingsObject);
       })
       .catch(error => {
-        console.error(error);
+        rollbar.error(error);
       });
     // when we have the action needed, execute it
     actionNeededPromise
@@ -333,7 +340,7 @@ function processTaskChanges(request, response) {
         }
       })
       .catch(error => {
-        console.error(error);
+        rollbar.error(error);
       });
     response.status(200).send();
   }
