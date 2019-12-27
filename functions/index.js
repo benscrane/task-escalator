@@ -2,6 +2,7 @@ const functions = require("firebase-functions");
 const { db } = require("./src/admin");
 const createUserDocument = require("./src/createUserDocument");
 const processTaskChanges = require("./src/processTaskChanges");
+const chronFetchUpdatedTasks = require('./src/chronFetchUpdatedTasks');
 const express = require("express");
 const cors = require("cors");
 const request = require("request");
@@ -61,3 +62,5 @@ exports.createUserDocument = functions.auth.user().onCreate(createUserDocument);
 exports.processTodoistOauth = functions.https.onRequest(app);
 
 exports.processTaskChanges = functions.https.onRequest(processTaskChanges);
+
+exports.chronFetchUpdatedTasks = functions.pubsub.schedule('*/5 * * * *').onRun(chronFetchUpdatedTasks);
