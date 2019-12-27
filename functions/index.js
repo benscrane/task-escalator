@@ -3,6 +3,7 @@ const { db } = require("./src/admin");
 const createUserDocument = require("./src/createUserDocument");
 const processTaskChanges = require("./src/processTaskChanges");
 const chronFetchUpdatedTasks = require("./src/chronFetchUpdatedTasks");
+const pubsubSyncUser = require("./src/pubsubSyncUser");
 const express = require("express");
 const cors = require("cors");
 const request = require("request");
@@ -66,3 +67,5 @@ exports.processTaskChanges = functions.https.onRequest(processTaskChanges);
 exports.chronFetchUpdatedTasks = functions.pubsub
   .schedule("*/5 * * * *")
   .onRun(chronFetchUpdatedTasks);
+
+exports.pubsubSyncUser = functions.pubsub.topic("sync-user").onPublish(pubsubSyncUser);

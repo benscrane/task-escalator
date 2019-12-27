@@ -1,17 +1,9 @@
-const { db } = require("./admin.js");
+const { db, rollbar } = require("./admin.js");
 const request = require("request");
 const uuidv4 = require("uuid/v4");
 const _ = require("lodash");
 const moment = require("moment-timezone");
-const functions = require("firebase-functions");
-const Rollbar = require("rollbar");
 const { PubSub } = require("@google-cloud/pubsub");
-
-const rollbar = new Rollbar({
-  accessToken: functions.config().rollbar.access_token,
-  captureUncaught: true,
-  captureUnhandledRejections: true,
-});
 
 const pubsub = new PubSub();
 
@@ -316,6 +308,7 @@ async function processTaskChanges(request, response) {
     const dataBuffer = Buffer.from(JSON.stringify(data));
     const messageId = await pubsub.topic(topic).publish(dataBuffer);
     console.info(`Published message ${messageId} to ${topic}`);
+    response.status(200).send();
   }
   if (filterOutTask(request.body)) {
     response.status(200).send();
