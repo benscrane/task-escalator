@@ -308,7 +308,7 @@ async function processTaskChanges(request, response) {
   // filter out tasks
   // rollbar.info("Log request", request);
   const todoistId = _.get(request.body, "user_id");
-  const topic = 'sync-user';
+  const topic = 'todoist-updates';
   if (todoistId) {
     const data = {
       todoistId
