@@ -2,6 +2,10 @@ const _ = require("lodash");
 const axios = require("axios");
 const querystring = require("querystring");
 const { db, rollbar } = require("./admin");
+const { PubSub } = require("@google-cloud/pubsub");
+
+const pubsub = new PubSub();
+const pushTopic = "item-updates";
 
 async function loadUserData(todoistUid) {
     const userQuery = db.collection("users")
@@ -34,6 +38,37 @@ async function getTodoistSync(userData) {
     return response.data;
 }
 
+// filter no due date and recurring tasks
+// should we filter out completed tasks we don't need to store all that
+async function filterTasks(items) {
+    return items.filter(item => {
+        if (!_.get(item, "due")) return false;
+        if (_.get(item, "due.is_recurring")) return false;
+        if (_.get(item, "checked")) return false;
+        return true;
+    })
+}
+
+async function processTaskUpdates(todoistData, userData) {
+    const items = _.get(todoistData, "items") || [];
+    const filteredItems = filterTasks(items);
+    if (_.isEmpty(filteredItems)) {
+        return;
+    }
+    // submit all messages to pubsub
+    // this will be thousands when users sign up
+    // filtering will help here
+    for (const item of filteredItems) {
+        const data = {
+            ...item,
+            user: userData
+        };
+        const dataBuffer = Buffer.from(JSON.stringify(data));
+        pubsub.topic(pushTopic).publish(dataBuffer);
+    }
+    return;
+}
+
 async function pubsubSyncUser(message) {
     // get todoist id
     const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8")) || {};
@@ -45,6 +80,9 @@ async function pubsubSyncUser(message) {
     // get changes from todoist
     const todoistData = await getTodoistSync(userData);
     console.log(todoistData);
+    // process todoist changes
+    // should this be in one or 
+    await processTaskUpdates(todoistData, userData);
     return null;
 }
 
