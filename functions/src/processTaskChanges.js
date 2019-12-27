@@ -5,11 +5,15 @@ const _ = require("lodash");
 const moment = require("moment-timezone");
 const functions = require("firebase-functions");
 const Rollbar = require("rollbar");
+const { PubSub } = require("@google-cloud/pubsub");
+
 const rollbar = new Rollbar({
   accessToken: functions.config().rollbar.access_token,
   captureUncaught: true,
   captureUnhandledRejections: true,
 });
+
+const pubsub = new PubSub();
 
 /**
  * Summary. Filters incoming event data from todoist webhooks
@@ -18,7 +22,7 @@ const rollbar = new Rollbar({
  * @returns {boolean} True if the task should be filtered out, false if the task should be evaluated further
  */
 function filterOutTask(eventData) {
-  rollbar.info(eventData);
+  // rollbar.info(eventData);
   // check event type, filter out anything that's not added or updated
   const eventName = _.get(eventData, "event_name");
   if (!["item:updated", "item:added"].includes(eventName)) {
@@ -300,9 +304,18 @@ function escalateTrackedTask(event_data, user_settings) {
   });
 }
 
-function processTaskChanges(request, response) {
+async function processTaskChanges(request, response) {
   // filter out tasks
-  rollbar.info("Log request", request);
+  // rollbar.info("Log request", request);
+  const todoistId = _.get(request.body, "user_id");
+  const topic = 'sync-user';
+  if (todoistId) {
+    const data = {
+      todoistId
+    };
+    const messageId = await pubsub.topic(topic).publish(data);
+    console.info(`Published message ${messageId} to ${topic}`);
+  }
   if (filterOutTask(request.body)) {
     response.status(200).send();
   } else {
