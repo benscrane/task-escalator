@@ -313,7 +313,7 @@ async function processTaskChanges(request, response) {
     const data = {
       todoistId
     };
-    const dataBuffer = Buffer.from(data);
+    const dataBuffer = Buffer.from(JSON.stringify(data));
     const messageId = await pubsub.topic(topic).publish(dataBuffer);
     console.info(`Published message ${messageId} to ${topic}`);
   }
