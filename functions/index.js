@@ -4,6 +4,7 @@ const createUserDocument = require("./src/createUserDocument");
 const processTaskChanges = require("./src/processTaskChanges");
 const chronFetchUpdatedTasks = require("./src/chronFetchUpdatedTasks");
 const pubsubSyncUser = require("./src/pubsubSyncUser");
+const pubsubHandleTask = require("./src/pubsubHandleTask");
 const express = require("express");
 const cors = require("cors");
 const request = require("request");
@@ -69,3 +70,5 @@ exports.chronFetchUpdatedTasks = functions.pubsub
   .onRun(chronFetchUpdatedTasks);
 
 exports.pubsubSyncUser = functions.pubsub.topic("sync-user").onPublish(pubsubSyncUser);
+
+exports.pubsubHandleTask = functions.pubsub.topic("item-updates").onPublish(pubsubHandleTask);
