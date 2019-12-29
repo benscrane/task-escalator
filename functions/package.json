@@ -7,27 +7,31 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "test": "jest"
   },
   "engines": {
     "node": "8"
   },
   "dependencies": {
     "@google-cloud/pubsub": "^1.2.0",
-    "body-parser": "^1.18.3",
+    "axios": "^0.19.0",
+    "body-parser": "^1.19.0",
     "cors": "^2.8.5",
-    "express": "^4.16.4",
-    "firebase-admin": "~5.12.1",
-    "firebase-functions": "^2.1.0",
+    "express": "^4.17.1",
+    "firebase-admin": "^8.9.0",
+    "firebase-functions": "^3.3.0",
     "lodash": "^4.17.15",
     "moment-timezone": "^0.5.27",
+    "querystring": "^0.2.0",
     "request": "^2.88.0",
     "rollbar": "^2.14.4",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "eslint": "^4.12.0",
-    "eslint-plugin-promise": "^3.6.0"
+    "eslint": "^6.8.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "jest": "^24.9.0"
   },
   "private": true
 }

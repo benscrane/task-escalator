@@ -1,17 +1,9 @@
-const { db } = require("./admin.js");
+const { db, rollbar } = require("./admin.js");
 const request = require("request");
 const uuidv4 = require("uuid/v4");
 const _ = require("lodash");
 const moment = require("moment-timezone");
-const functions = require("firebase-functions");
-const Rollbar = require("rollbar");
 const { PubSub } = require("@google-cloud/pubsub");
-
-const rollbar = new Rollbar({
-  accessToken: functions.config().rollbar.access_token,
-  captureUncaught: true,
-  captureUnhandledRejections: true,
-});
 
 const pubsub = new PubSub();
 
@@ -309,56 +301,58 @@ async function processTaskChanges(request, response) {
   // rollbar.info("Log request", request);
   const todoistId = _.get(request.body, "user_id");
   const topic = 'todoist-updates';
-  if (todoistId) {
-    const data = {
-      todoistId
-    };
-    const dataBuffer = Buffer.from(JSON.stringify(data));
-    const messageId = await pubsub.topic(topic).publish(dataBuffer);
-    console.info(`Published message ${messageId} to ${topic}`);
+  if (!todoistId) {
+    response.status(500).send();
   }
-  if (filterOutTask(request.body)) {
-    response.status(200).send();
-  } else {
-    var userSettings = {};
-    //Get the user document from the todoist ID (request.body.user_id)
-    var loadDataPromise = loadUserData(request.body.user_id);
-    var actionNeededPromise = loadDataPromise
-      .then(settingsObject => {
-        userSettings = settingsObject;
-        // determine the required action based on incoming task info and user settings
-        return determineActionNeeded(request.body, settingsObject);
-      })
-      .catch(error => {
-        rollbar.error(error);
-      });
-    // when we have the action needed, execute it
-    actionNeededPromise
-      .then(actionNeeded => {
-        switch (actionNeeded) {
-          case "ADD_TASK":
-            console.log("Add task");
-            return addTrackedTask(request.body, userSettings, "ADD_NEW");
-          case "ESCALATE_TASK":
-            console.log("Escalate task");
-            return escalateTrackedTask(request.body, userSettings);
-          case "UPDATE_TASK":
-            console.log("Update task");
-            return addTrackedTask(
-              request.body,
-              userSettings,
-              "UPDATE_EXISTING"
-            );
-          default:
-            console.log("Hit default case");
-            return true;
-        }
-      })
-      .catch(error => {
-        rollbar.error(error);
-      });
-    response.status(200).send();
-  }
+  const data = {
+    todoistId
+  };
+  const dataBuffer = Buffer.from(JSON.stringify(data));
+  const messageId = await pubsub.topic(topic).publish(dataBuffer);
+  console.info(`Published message ${messageId} to ${topic}`);
+  response.status(200).send();
+  // if (filterOutTask(request.body)) {
+  //   response.status(200).send();
+  // } else {
+  //   var userSettings = {};
+  //   //Get the user document from the todoist ID (request.body.user_id)
+  //   var loadDataPromise = loadUserData(request.body.user_id);
+  //   var actionNeededPromise = loadDataPromise
+  //     .then(settingsObject => {
+  //       userSettings = settingsObject;
+  //       // determine the required action based on incoming task info and user settings
+  //       return determineActionNeeded(request.body, settingsObject);
+  //     })
+  //     .catch(error => {
+  //       rollbar.error(error);
+  //     });
+  //   // when we have the action needed, execute it
+  //   actionNeededPromise
+  //     .then(actionNeeded => {
+  //       switch (actionNeeded) {
+  //         case "ADD_TASK":
+  //           console.log("Add task");
+  //           return addTrackedTask(request.body, userSettings, "ADD_NEW");
+  //         case "ESCALATE_TASK":
+  //           console.log("Escalate task");
+  //           return escalateTrackedTask(request.body, userSettings);
+  //         case "UPDATE_TASK":
+  //           console.log("Update task");
+  //           return addTrackedTask(
+  //             request.body,
+  //             userSettings,
+  //             "UPDATE_EXISTING"
+  //           );
+  //         default:
+  //           console.log("Hit default case");
+  //           return true;
+  //       }
+  //     })
+  //     .catch(error => {
+  //       rollbar.error(error);
+  //     });
+  //   response.status(200).send();
+  // }
 }
 
 module.exports = processTaskChanges;
