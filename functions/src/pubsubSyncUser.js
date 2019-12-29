@@ -193,6 +193,7 @@ async function handleSingleTask(item, userData) {
     if (action === "ESCALATE") {
         const escalateInfo = {
             oauthToken: userData.oauthToken,
+            todoistTaskData
         };
         await escalateTodoistTask(escalateInfo);
     }
