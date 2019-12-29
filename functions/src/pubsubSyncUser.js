@@ -3,6 +3,7 @@ const axios = require("axios");
 const querystring = require("querystring");
 const { db, rollbar } = require("./admin");
 const moment = require("moment-timezone");
+const uuidv4 = require("uuid/v4");
 
 async function loadUserData(todoistUid) {
     const userQuery = db.collection("users")
@@ -35,10 +36,29 @@ async function getTodoistSync(userData) {
     return response.data;
 }
 
-async function escalateTodoistTask({ oauthToken }) {
-    console.log("enter escalateTodoistTask");
+async function escalateTodoistTask({ oauthToken, todoistTaskData }) {
+    const uuid = uuidv4();
+    if (!oauthToken) {
+        throw new Error("Missing params");
+    }
+    const oldPriority = Number(todoistTaskData.priority);
+    if (oldPriority === 4) return;
+    const commands = [{
+        type: "item_update",
+        uuid,
+        args: {
+            id: todoistTaskData.taskId,
+            priority: oldPriority + 1
+        }
+    }];
     const url = "https://api.todoist.com/sync/v8/sync";
-    throw new Error("Need to escalate Todoist");
+    const data = {
+        token: oauthToken,
+        commands: JSON.stringify(commands),
+    };
+    await axios.post(url, querystring.stringify(data));
+    console.log(`Escalated Todoist task`)
+    return;
 }
 
 // filter no due date and recurring tasks
@@ -102,6 +122,24 @@ function determineActionNeeded({ escalatorTaskData, todoistTaskData, userData })
     return "UPDATE";
 }
 
+async function addEscalatedTask({ todoistTaskData, userData }) {
+    // content, previous_priority, new_priority, tracked_task_id
+    const dataToSave = {
+        content: todoistTaskData.content,
+        previous_priority: todoistTaskData.priority,
+        new_priority: todoistTaskData.priority === 4 ? 4 : todoistTaskData.priority + 1,
+        tracked_task_id: todoistTaskData.taskId
+    };
+    const timestamp = new Date().getTime();
+    await db
+        .collection("users")
+        .doc(userData.doc_id)
+        .collection("escalatedTasks")
+        .doc(String(timestamp))
+        .set(dataToSave);
+    console.log(`Add FS escalated task ${timestamp} for user ${userData.doc_id}`);
+}
+
 async function updateFirestoreTask({ escalatorTaskData, todoistTaskData, userData, action }) {
     const escalate = action === "ESCALATE";
     const escalatorPriority = Number(_.get(escalatorTaskData, "current_priority", 999));
@@ -132,12 +170,15 @@ async function updateFirestoreTask({ escalatorTaskData, todoistTaskData, userDat
         .collection("trackedTasks")
         .doc(String(todoistTaskData.taskId))
         .set(dataToSave, { merge: true });
+    console.log(`Update FS task ${todoistTaskData.taskId} for user ${userData.doc_id}`);
     return;
 }
 
 async function handleSingleTask(item, userData) {
-    console.log("enter handleSingleTask");
-    console.log(item);
+    console.log({
+        ...item,
+        location: "top of handleSingleTask"
+    });
     // load from database
     const dbInfo = {
         userId: userData.doc_id,
@@ -149,7 +190,6 @@ async function handleSingleTask(item, userData) {
     // compare and determine course of action
     const action = determineActionNeeded({ escalatorTaskData, todoistTaskData, userData });
     // if escalate, update todoist
-    // action === "ESCALATE"
     if (action === "ESCALATE") {
         const escalateInfo = {
             oauthToken: userData.oauthToken,
@@ -157,13 +197,22 @@ async function handleSingleTask(item, userData) {
         await escalateTodoistTask(escalateInfo);
     }
     // update firestore with new info
-    // action === "UPDATE"
     if (["ESCALATE", "UPDATE"].includes(action)) {
         await updateFirestoreTask({ escalatorTaskData, todoistTaskData, userData });
     }
-    // throw error if failure
-    // return nothing
-    console.log("exit HandleSingleTask");
+    if (action === "ESCALATE") {
+        await addEscalatedTask({ todoistTaskData, userData });
+    }
+    // we made it
+    return;
+}
+
+async function updateSyncToken({ userDocId, newSyncToken }) {
+    await db
+        .collection("users")
+        .doc(String(userDocId))
+        .set({ syncToken: newSyncToken }, { merge: true });
+    console.log(`Updated sync token for user ${userDocId}`);
     return;
 }
 
@@ -173,14 +222,16 @@ async function processTaskUpdates(todoistData, userData) {
     if (_.isEmpty(filteredItems)) {
         return;
     }
-    // instead, promise.all
     // if promise all is successful, update syncToken and done
-    // need to build the item data
     await Promise.all(
         filteredItems.map(item => handleSingleTask(item, userData))
     );
-    // update syncToken here, new function
-    console.log("SUCCESS: update synctoken");
+    // update syncToken here
+    const input = {
+        userDocId: userData.doc_id,
+        newSyncToken: todoistData.sync_token,
+    };
+    await updateSyncToken(input);
     return;
 }
 
