@@ -35,10 +35,10 @@ export default {
   },
   mounted() {
     if (this.$route.query.state === this.user.uid) {
-      let code = this.$route.query.code;
+      const code = this.$route.query.code;
       axios
         .get(
-          `https://us-central1-taskalator.cloudfunctions.net/processTodoistOauth/${code}/${
+          `https://us-central1-taskalator.cloudfunctions.net/processTodoistOauth?code=${code}&uid=${
             this.user.uid
           }`
         )
@@ -49,6 +49,7 @@ export default {
         })
         .catch(error => {
           console.error(error);
+          this.$router.replace("/settings");
         });
     }
   }

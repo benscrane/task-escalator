@@ -31,7 +31,7 @@ export default {
       var tempTaskArr = this.$store.getters.getRecentEscalatedTasks;
       return tempTaskArr.sort((a, b) => {
         return b.doc_id - a.doc_id;
-      });
+      }).slice(0, 9);
     },
     userTotalEscalatedPhrase() {
       var numEscalated = Number(this.$store.getters.getUserTotalEscalated);
