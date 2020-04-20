@@ -5,12 +5,8 @@ import "firebase/firestore";
 import router from "@/router";
 
 Vue.use(Vuex);
-const firestoreSettings = {
-  timestampsInSnapshots: true
-};
 
 var db = firebase.firestore();
-db.settings(firestoreSettings);
 
 export default new Vuex.Store({
   state: {
@@ -151,7 +147,8 @@ export default new Vuex.Store({
         .collection("users")
         .doc(state.user.uid)
         .collection("escalatedTasks");
-      escalatedTasksRef.limit(10).onSnapshot(querySnapshot => {
+      // TODO: add a limit back and add order by after timestamps are implemented
+      escalatedTasksRef.onSnapshot(querySnapshot => {
         if (!querySnapshot.empty) {
           // we have results, commit them
           var docDataArr = [];
