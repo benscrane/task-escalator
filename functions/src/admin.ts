@@ -1,6 +1,6 @@
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-const Rollbar = require('rollbar');
+import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
+import Rollbar from 'rollbar';
 
 admin.initializeApp(functions.config().firebase);
 
@@ -12,4 +12,7 @@ const rollbar = new Rollbar({
     captureUnhandledRejections: true,
   });
 
-module.exports = { db, rollbar };
+export {
+  db,
+  rollbar
+};
