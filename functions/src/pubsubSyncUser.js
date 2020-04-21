@@ -1,13 +1,13 @@
-const _ = require("lodash");
-const axios = require("axios");
-const querystring = require("querystring");
-const { db, rollbar } = require("./admin");
-const moment = require("moment-timezone");
-const uuidv4 = require("uuid/v4");
+const _ = require('lodash');
+const axios = require('axios');
+const querystring = require('querystring');
+const { db, rollbar } = require('./admin');
+const moment = require('moment-timezone');
+const uuidv4 = require('uuid/v4');
 
 async function loadUserData(todoistUid) {
-    const userQuery = db.collection("users")
-        .where("todoistUserId", "==", todoistUid);
+    const userQuery = db.collection('users')
+        .where('todoistUserId', '==', todoistUid);
     try {
         const userSnapshot = await userQuery.get();
         const settingsObj = userSnapshot.docs[0].data();

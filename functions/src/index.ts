@@ -1,10 +1,10 @@
 const functions = require('firebase-functions');
-const createUserDocument = require("./src/createUserDocument");
-const processTaskChanges = require("./src/processTaskChanges");
-const chronFetchUpdatedTasks = require("./src/chronFetchUpdatedTasks");
-const pubsubSyncUser = require("./src/pubsubSyncUser");
-const pubsubHandleTask = require("./src/pubsubHandleTask");
-const processTodoistOauth = require('./src/processTodoistOauth');
+const createUserDocument = require("./createUserDocument");
+const processTaskChanges = require("./processTaskChanges");
+const chronFetchUpdatedTasks = require("./chronFetchUpdatedTasks");
+const pubsubSyncUser = require("./pubsubSyncUser");
+const pubsubHandleTask = require("./pubsubHandleTask");
+const processTodoistOauth = require('./processTodoistOauth');
 
 exports.createUserDocument = functions.auth.user().onCreate(createUserDocument);
 
