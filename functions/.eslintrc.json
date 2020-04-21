@@ -121,6 +121,7 @@
     "promise/no-nesting": 1,
 
     // quotes
-    "quotes": ["warn", "single", { "avoidEscape": true, "allowTemplateLiterals": true }]
+    "quotes": ["warn", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
+    "complexity": ["warn", 5]
   }
 }

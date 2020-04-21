@@ -1,5 +1,5 @@
-const _ = require("lodash");
-const { db, rollbar } = require("./admin");
+const _ = require('lodash');
+const { db, rollbar } = require('./admin');
 
 async function pubsubHandleTask(message) {
     console.log(message);
