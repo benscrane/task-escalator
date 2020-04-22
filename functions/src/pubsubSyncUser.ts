@@ -18,7 +18,7 @@ async function loadUserData(todoistUid: any) {
         settingsObj.doc_id = userSnapshot.docs[0].id;
         return settingsObj;
     } catch (err) {
-        rollbar.error(err);
+        throw new Error(err);
     }
 }
 
