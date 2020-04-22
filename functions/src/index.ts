@@ -1,10 +1,10 @@
 import * as functions from 'firebase-functions';
+import chronFetchUpdatedTasks from './chronFetchUpdatedTasks';
 import createUserDocument from './createUserDocument';
 import processTaskChanges from './processTaskChanges';
-import chronFetchUpdatedTasks from './chronFetchUpdatedTasks';
-import { pubsubSyncUser}  from './pubsubSyncUser';
-import pubsubHandleTask from './pubsubHandleTask';
 import processTodoistOauth from './processTodoistOauth';
+import { pubsubHandleTask } from './pubsubHandleTask';
+import { pubsubSyncUser}  from './pubsubSyncUser';
 
 exports.createUserDocument = functions.auth.user().onCreate(createUserDocument);
 

@@ -31,6 +31,7 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
     "@types/lodash": "^4.14.150",
     "@types/moment-timezone": "^0.5.13",
     "@types/node": "^13.13.1",

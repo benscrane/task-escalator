@@ -1,9 +1,9 @@
+import axios from 'axios';
 import * as _ from 'lodash';
-import * as axios from 'axios';
-import * as querystring from 'querystring';
-import { db, rollbar } from './admin';
 import * as moment from 'moment-timezone';
+import * as querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
+import { db, rollbar } from './admin';
 
 async function loadUserData(todoistUid: any) {
     const userQuery = db.collection('users')

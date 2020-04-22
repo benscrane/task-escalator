@@ -49,7 +49,7 @@ function loadUserData(todoistUserId) {
     .then(querySnapshot => {
       var settingsObj = querySnapshot.docs[0].data();
       settingsObj.doc_id = querySnapshot.docs[0].id;
-      console.log(settingsObj);
+      // console.log(settingsObj);
       return settingsObj;
     })
     .catch(error => {
@@ -64,7 +64,7 @@ function loadUserData(todoistUserId) {
  * @param  {object} user_settings
  * @returns {string}  "ADD_TASK", "UPDATE_TASK", or "ESCALATE_TASK"
  */
-function determineActionNeeded(event_data, user_settings) {
+function determineActionNeeded(event_data, user_settings) { // tslint:disable-line
   // determine if task exists as a tracked task
   var taskDocumentSnapshot = null;
   var shouldTaskAddPromise = loadTask(
@@ -118,7 +118,7 @@ function determineActionNeeded(event_data, user_settings) {
  * @param  {documentSnapshot} taskDocSnapshot
  * @returns {string} UPDATE_TASK if the task should be updated, NO_ACTION if not
  */
-function shouldTaskUpdate(event_data, taskDocSnapshot) {
+function shouldTaskUpdate(event_data, taskDocSnapshot) {  // tslint:disable-line
   var taskDocData = taskDocSnapshot.data();
   if (event_data.event_data.priority !== taskDocData.current_priority) {
     return "UPDATE_TASK";
@@ -141,7 +141,7 @@ function shouldTaskUpdate(event_data, taskDocSnapshot) {
  * @param  {documentSnapshot} taskDocSnapshot
  * @returns {boolean} True if task should be escalated, false if not
  */
-function shouldTaskEscalate(event_data, user_settings, taskDocSnapshot) {
+function shouldTaskEscalate(event_data, user_settings, taskDocSnapshot) { // tslint:disable-line
   // can't escalate if it's already top priority
   if (event_data.event_data.priority === 4) {
     return "CONTINUE_EVALUATION";
@@ -153,17 +153,17 @@ function shouldTaskEscalate(event_data, user_settings, taskDocSnapshot) {
     const date = _.get(event_data, "event_data.due.date");
     const tz = _.get(event_data, "event_data.due.timezone");
     var incomingDueDate = new Date(moment.tz(date, tz).utc().format());
-    console.log(`Incoming due date: ${incomingDueDate}`);
+    // console.log(`Incoming due date: ${incomingDueDate}`);
     var currentDueDate = new Date(taskDocData.current_due_date_utc);
-    console.log(`Current due date: ${currentDueDate}`);
+    // console.log(`Current due date: ${currentDueDate}`);
     var daysBeforeEscalation =
       user_settings[`p${5 - event_data.event_data.priority}Days`];
-    console.log(`Days before escalation: ${daysBeforeEscalation}`);
+    // console.log(`Days before escalation: ${daysBeforeEscalation}`);
     var dueDateDifference =
       incomingDueDate.getTime() - currentDueDate.getTime();
-    console.log(`Due date difference: ${dueDateDifference}`);
+    // console.log(`Due date difference: ${dueDateDifference}`);
     var msBeforeEscalation = daysBeforeEscalation * 24 * 60 * 60 * 1000;
-    console.log(`MS difference: ${msBeforeEscalation}`);
+    // console.log(`MS difference: ${msBeforeEscalation}`);
     if (dueDateDifference > msBeforeEscalation) {
       return "ESCALATE_TASK";
     } else {
@@ -197,10 +197,10 @@ function loadTask(taskId, userUid) {
  * @param  {object} user_settings User settings object
  * @param  {string} action  Action to take, ADD_NEW or UPDATE_EXISTING
  */
-function addTrackedTask(event_data, user_settings, action) {
-  console.log(event_data);
-  console.log(user_settings);
-  console.log(action);
+function addTrackedTask(event_data, user_settings, action) {  // tslint:disable-line
+  // console.log(event_data);
+  // console.log(user_settings);
+  // console.log(action);
   const content = _.get(event_data, "event_data.content");
   const currentPriority = _.get(event_data, "event_data.priority");
   var documentData = {
@@ -231,7 +231,7 @@ function addTrackedTask(event_data, user_settings, action) {
  * @param {object} event_data
  * @param {object} user_settings
  */
-function addEscalatedTask(event_data, user_settings) {
+function addEscalatedTask(event_data, user_settings) {  // tslint:disable-line
   var documentData = {
     content: event_data.event_data.content,
     tracked_task_id: event_data.event_data.id,
@@ -250,7 +250,7 @@ function addEscalatedTask(event_data, user_settings) {
       return addTrackedTask(event_data, user_settings, "UPDATE_ESCALATED");
     })
     .catch(error => {
-      console.log(error);
+      // console.log(error);
     });
   //TODO: increment the distributed counter here
   return updateEscalatedTaskPromise;
@@ -260,7 +260,7 @@ function addEscalatedTask(event_data, user_settings) {
  * @param  {object} event_data
  * @param  {object} user_settings
  */
-function escalateTrackedTask(event_data, user_settings) {
+function escalateTrackedTask(event_data, user_settings) { // tslint:disable-line
   var uuid = uuidv4();
   var commands = [
     {
@@ -280,8 +280,8 @@ function escalateTrackedTask(event_data, user_settings) {
     method: "POST"
   };
   request(options, (error, response, body) => {
-    console.log(response);
-    console.log(body);
+    // console.log(response);
+    // console.log(body);
     if (!error && response.statusCode === 200) {
       var syncBody = JSON.parse(body);
       if (syncBody.sync_status[uuid] === "ok") {
@@ -290,27 +290,27 @@ function escalateTrackedTask(event_data, user_settings) {
       }
       return false;
     } else {
-      console.log(error);
+      // console.log(error);
       return false;
     }
   });
 }
 
-async function processTaskChanges(request, response) {
+async function processTaskChanges(req, res) {
   // filter out tasks
   // rollbar.info("Log request", request);
-  const todoistId = _.get(request.body, "user_id");
+  const todoistId = _.get(req.body, "user_id");
   const topic = 'todoist-updates';
   if (!todoistId) {
-    response.status(500).send();
+    res.status(500).send();
   }
   const data = {
     todoistId
   };
   const dataBuffer = Buffer.from(JSON.stringify(data));
   const messageId = await pubsub.topic(topic).publish(dataBuffer);
-  console.info(`Published message ${messageId} to ${topic}`);
-  response.status(200).send();
+  // console.info(`Published message ${messageId} to ${topic}`);
+  res.status(200).send();
   // if (filterOutTask(request.body)) {
   //   response.status(200).send();
   // } else {

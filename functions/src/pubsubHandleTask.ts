@@ -5,4 +5,6 @@ async function pubsubHandleTask(message: any) {
     return null;
 }
 
-module.exports = pubsubHandleTask;
+export {
+    pubsubHandleTask
+};
