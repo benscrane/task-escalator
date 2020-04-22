@@ -5,6 +5,20 @@ import * as querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
 import { db, rollbar } from './admin';
 
+export const pubsubSyncUser = async (message: any) => {
+    // get todoist id
+    const data = JSON.parse(Buffer.from(message.data, 'base64').toString('utf-8')) || {};
+    const todoistUid = _.get(data, 'todoistId');
+    if (!todoistUid) return null;
+    // find and load user data from db
+    const userData = await loadUserData(todoistUid);
+    // get changes from todoist
+    const todoistData = await getTodoistSync(userData);
+    // process todoist changes
+    await processTaskUpdates(todoistData, userData);
+    return null;
+};
+
 const loadUserData = async (todoistUid: any) => {
     const userQuery = db.collection('users')
         .where('todoistUserId', '==', todoistUid);
@@ -22,13 +36,13 @@ const loadUserData = async (todoistUid: any) => {
     }
 };
 
-async function getTodoistSync(userData: any) {
-    const token = _.get(userData, "oauthToken");
-    const syncToken = _.get(userData, "syncToken") || "*";
+const getTodoistSync = async (userData: any) => {
+    const token = _.get(userData, 'oauthToken');
+    const syncToken = _.get(userData, 'syncToken', '*');
     const resourceTypes = '["items"]';
-    const url = "https://api.todoist.com/sync/v8/sync";
+    const url = 'https://api.todoist.com/sync/v8/sync';
     if (!token) {
-        throw new Error("No auth token");
+        throw new Error('No auth token');
     }
     // make api request
     const data = {
@@ -38,7 +52,7 @@ async function getTodoistSync(userData: any) {
     };
     const response = await axios.post(url, querystring.stringify(data));
     return response.data;
-}
+};
 
 async function escalateTodoistTask({ oauthToken, todoistTaskData }: any) {
     const uuid = uuidv4();
@@ -239,21 +253,3 @@ async function processTaskUpdates(todoistData: any, userData: any) {
     await updateSyncToken(input);
     return;
 }
-
-async function pubsubSyncUser(message: any) {
-    // get todoist id
-    const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8")) || {};
-    const todoistUid = _.get(data, "todoistId");
-    if (!todoistUid) return null;
-    // find and load user data from db
-    const userData = await loadUserData(todoistUid);
-    // get changes from todoist
-    const todoistData = await getTodoistSync(userData);
-    // process todoist changes
-    await processTaskUpdates(todoistData, userData);
-    return null;
-}
-
-export {
-    pubsubSyncUser
-};
