@@ -3,14 +3,15 @@
     "module": "commonjs",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
     "outDir": "lib",
     "sourceMap": true,
     "strict": true,
     "target": "es2017",
     "allowJs": true
   },
-  "compileOnSave": true,
   "include": [
-    "src"
+    "src/**/*.ts"
   ]
 }

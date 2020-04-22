@@ -1,9 +1,9 @@
 {
+  "extends": ["tslint:latest"],
+  "linterOptions": {
+    "exclude": ["**/*.json", "./*.json"]
+  },
   "rules": {
-    // -- Strict errors --
-    // These lint rules are likely always a good idea.
-
-    // Force function overloads to be declared together. This ensures readers understand APIs.
     "adjacent-overload-signatures": true,
 
     // Do not allow the subtle/obscure comma operator.
@@ -108,7 +108,15 @@
     "prefer-const": {"severity": "warning"},
 
     // Multi-line object literals and function calls should have a trailing comma. This helps avoid merge conflicts.
-    "trailing-comma": {"severity": "warning"}
+    "trailing-comma": {"severity": "warning"},
+    "ordered-imports": true,
+    "no-console": false,
+    "variable-name": {
+      "options": [
+        "allow-snake-case",
+        "check-format"
+      ]
+    }
   },
 
   "defaultSeverity": "error"

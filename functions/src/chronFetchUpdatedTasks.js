@@ -32,7 +32,7 @@ async function chronFetchUpdatedTasks() {
     if (messages.length === 0) return null; // skip processing if no messages
     const ackIds = [];
     const todoistUids = [];
-    console.log(messages);
+    // console.log(messages);
     for (const message of messages) {
         const data = extractDataFromMsg(message);
         const todoistUid = _.get(data, "todoistId");

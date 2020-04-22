@@ -1,24 +1,28 @@
-const _ = require('lodash');
-const axios = require('axios');
-const querystring = require('querystring');
-const { db, rollbar } = require('./admin');
-const moment = require('moment-timezone');
-const uuidv4 = require('uuid/v4');
+import axios from 'axios';
+import * as _ from 'lodash';
+import * as moment from 'moment-timezone';
+import * as querystring from 'querystring';
+import { v4 as uuidv4 } from 'uuid';
+import { db, rollbar } from './admin';
 
-async function loadUserData(todoistUid) {
+async function loadUserData(todoistUid: any) {
     const userQuery = db.collection('users')
         .where('todoistUserId', '==', todoistUid);
     try {
         const userSnapshot = await userQuery.get();
+        if (userSnapshot.empty) {
+            rollbar.debug(userQuery);
+            rollbar.debug(todoistUid);
+        }
         const settingsObj = userSnapshot.docs[0].data();
         settingsObj.doc_id = userSnapshot.docs[0].id;
         return settingsObj;
-    } catch(err) {
+    } catch (err) {
         rollbar.error(err);
     }
 }
 
-async function getTodoistSync(userData) {
+async function getTodoistSync(userData: any) {
     const token = _.get(userData, "oauthToken");
     const syncToken = _.get(userData, "syncToken") || "*";
     const resourceTypes = '["items"]';
@@ -36,7 +40,7 @@ async function getTodoistSync(userData) {
     return response.data;
 }
 
-async function escalateTodoistTask({ oauthToken, todoistTaskData }) {
+async function escalateTodoistTask({ oauthToken, todoistTaskData }: any) {
     const uuid = uuidv4();
     if (!oauthToken) {
         throw new Error("Missing params");
@@ -63,8 +67,8 @@ async function escalateTodoistTask({ oauthToken, todoistTaskData }) {
 
 // filter no due date and recurring tasks
 // should we filter out completed tasks we don't need to store all that
-function filterTasks(items) {
-    return items.filter(item => {
+function filterTasks(items: any) {
+    return items.filter((item: any) => {
         if (!_.get(item, "due")) return false;
         if (_.get(item, "due.is_recurring")) return false;
         if (_.get(item, "checked")) return false;
@@ -73,7 +77,7 @@ function filterTasks(items) {
 }
 
 // return task document or empty document if none exists
-async function loadTaskDB({ userId, taskId}) {
+async function loadTaskDB({ userId, taskId}: any) {
     const taskRef = db
         .collection("users")
         .doc(userId)
@@ -85,10 +89,10 @@ async function loadTaskDB({ userId, taskId}) {
     } else {
         return {};
     }
-    
+
 }
 
-function formatTodoistTaskData(item) {
+function formatTodoistTaskData(item: any) {
     const taskId = _.get(item, "id");
     const content = _.get(item, "content");
     const priority = _.get(item, "priority");
@@ -106,7 +110,7 @@ function formatTodoistTaskData(item) {
     };
 }
 
-function determineActionNeeded({ escalatorTaskData, todoistTaskData, userData }) {
+function determineActionNeeded({ escalatorTaskData, todoistTaskData, userData }: any) {
     // if priority changed, just update task
     if (escalatorTaskData.current_priority !== todoistTaskData.priority) return "UPDATE";
     // compare dates
@@ -122,7 +126,7 @@ function determineActionNeeded({ escalatorTaskData, todoistTaskData, userData })
     return "UPDATE";
 }
 
-async function addEscalatedTask({ todoistTaskData, userData }) {
+async function addEscalatedTask({ todoistTaskData, userData }: any) {
     // content, previous_priority, new_priority, tracked_task_id
     const dataToSave = {
         content: todoistTaskData.content,
@@ -140,7 +144,7 @@ async function addEscalatedTask({ todoistTaskData, userData }) {
     console.log(`Add FS escalated task ${timestamp} for user ${userData.doc_id}`);
 }
 
-async function updateFirestoreTask({ escalatorTaskData, todoistTaskData, userData, action }) {
+async function updateFirestoreTask({ escalatorTaskData, todoistTaskData, userData, action }: any) {
     const escalate = action === "ESCALATE";
     const escalatorPriority = Number(_.get(escalatorTaskData, "current_priority", 999));
     const todoistPriority = Number(_.get(todoistTaskData, "priority", 888));
@@ -149,11 +153,11 @@ async function updateFirestoreTask({ escalatorTaskData, todoistTaskData, userDat
     const content = todoistTaskData.content;
     const current_due_date_utc = todoistTaskData.due_date_utc;
     // priority depends on if we're escalating or not
-    const current_priority = 
+    const current_priority =
         (escalate && todoistTaskData.priority !== 4)
         ? todoistTaskData.priority + 1
         : todoistTaskData.priority;
-    const dataToSave = {
+    const dataToSave: any = {
         content,
         current_due_date_utc,
         current_priority,
@@ -170,15 +174,15 @@ async function updateFirestoreTask({ escalatorTaskData, todoistTaskData, userDat
         .collection("trackedTasks")
         .doc(String(todoistTaskData.taskId))
         .set(dataToSave, { merge: true });
-    console.log(`Update FS task ${todoistTaskData.taskId} for user ${userData.doc_id}`);
+    // console.log(`Update FS task ${todoistTaskData.taskId} for user ${userData.doc_id}`);
     return;
 }
 
-async function handleSingleTask(item, userData) {
-    console.log({
-        ...item,
-        location: "top of handleSingleTask"
-    });
+async function handleSingleTask(item: any, userData: any) {
+    // console.log({
+    //    ...item,
+    //    location: "top of handleSingleTask"
+    // });
     // load from database
     const dbInfo = {
         userId: userData.doc_id,
@@ -208,16 +212,16 @@ async function handleSingleTask(item, userData) {
     return;
 }
 
-async function updateSyncToken({ userDocId, newSyncToken }) {
+async function updateSyncToken({ userDocId, newSyncToken }: any) {
     await db
         .collection("users")
         .doc(String(userDocId))
         .set({ syncToken: newSyncToken }, { merge: true });
-    console.log(`Updated sync token for user ${userDocId}`);
+    // console.log(`Updated sync token for user ${userDocId}`);
     return;
 }
 
-async function processTaskUpdates(todoistData, userData) {
+async function processTaskUpdates(todoistData: any, userData: any) {
     const items = _.get(todoistData, "items") || [];
     const filteredItems = filterTasks(items);
     if (_.isEmpty(filteredItems)) {
@@ -225,7 +229,7 @@ async function processTaskUpdates(todoistData, userData) {
     }
     // if promise all is successful, update syncToken and done
     await Promise.all(
-        filteredItems.map(item => handleSingleTask(item, userData))
+        filteredItems.map((item: any) => handleSingleTask(item, userData))
     );
     // update syncToken here
     const input = {
@@ -236,7 +240,7 @@ async function processTaskUpdates(todoistData, userData) {
     return;
 }
 
-async function pubsubSyncUser(message) {
+async function pubsubSyncUser(message: any) {
     // get todoist id
     const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8")) || {};
     const todoistUid = _.get(data, "todoistId");
@@ -250,4 +254,6 @@ async function pubsubSyncUser(message) {
     return null;
 }
 
-module.exports = pubsubSyncUser;
+export {
+    pubsubSyncUser
+};
