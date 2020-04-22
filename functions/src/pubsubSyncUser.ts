@@ -5,7 +5,7 @@ import * as querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
 import { db, rollbar } from './admin';
 
-async function loadUserData(todoistUid: any) {
+const loadUserData = async (todoistUid: any) => {
     const userQuery = db.collection('users')
         .where('todoistUserId', '==', todoistUid);
     try {
@@ -20,7 +20,7 @@ async function loadUserData(todoistUid: any) {
     } catch (err) {
         throw new Error(err);
     }
-}
+};
 
 async function getTodoistSync(userData: any) {
     const token = _.get(userData, "oauthToken");
