@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-async function pubsubHandleTask(message: any) {
+const pubsubHandleTask = async (message: any) => {
     console.log(message);
     return null;
 }
