@@ -25,8 +25,8 @@ const loadUserData = async (todoistUid: any) => {
     try {
         const userSnapshot = await userQuery.get();
         if (userSnapshot.empty) {
-            rollbar.debug(userQuery);
-            rollbar.debug(todoistUid);
+            rollbar.info(userQuery);
+            rollbar.info(todoistUid);
         }
         const settingsObj = userSnapshot.docs[0].data();
         settingsObj.doc_id = userSnapshot.docs[0].id;
