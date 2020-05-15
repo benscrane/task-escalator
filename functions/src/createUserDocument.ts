@@ -1,6 +1,6 @@
-const { db, rollbar } = require("./admin.js");
+import { db } from './admin';
 
-function createUserDocument(user) {
+function createUserDocument(user: any) {
   var docRef = db.collection("users").doc(user.uid);
   var setUser = docRef.set(
     {
