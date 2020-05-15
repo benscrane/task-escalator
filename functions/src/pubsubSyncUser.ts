@@ -88,7 +88,7 @@ function filterTasks(items: any) {
         if (!_.get(item, "due")) return false;
         if (_.get(item, "due.is_recurring")) return false;
         if (_.get(item, "checked")) return false;
-        return true;   // CHANGE to true to go live
+        return true;
     })
 }
 
@@ -233,7 +233,6 @@ async function updateSyncToken({ userDocId, newSyncToken }: any) {
         .collection("users")
         .doc(String(userDocId))
         .set({ syncToken: newSyncToken }, { merge: true });
-    // console.log(`Updated sync token for user ${userDocId}`);
     return;
 }
 
@@ -247,7 +246,7 @@ async function processTaskUpdates(todoistData: any, userData: any) {
     await Promise.all(
         filteredItems.map((item: any) => handleSingleTask(item, userData))
     );
-    // update syncToken here
+
     const input = {
         userDocId: userData.doc_id,
         newSyncToken: todoistData.sync_token,
