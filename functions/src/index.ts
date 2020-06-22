@@ -1,9 +1,8 @@
 import * as functions from 'firebase-functions';
-import chronFetchUpdatedTasks from './chronFetchUpdatedTasks';
+import { chronFetchUpdatedTasks } from './chronFetchUpdatedTasks';
 import { createUserDocument } from './createUserDocument';
-import processTaskChanges from './processTaskChanges';
+import { processTaskChanges } from './processTaskChanges';
 import processTodoistOauth from './processTodoistOauth';
-import { pubsubHandleTask } from './pubsubHandleTask';
 import { pubsubSyncUser}  from './pubsubSyncUser';
 
 exports.createUserDocument = functions.auth.user().onCreate(createUserDocument);
@@ -17,5 +16,3 @@ exports.chronFetchUpdatedTasks = functions.pubsub
   .onRun(chronFetchUpdatedTasks);
 
 exports.pubsubSyncUser = functions.pubsub.topic('sync-user').onPublish(pubsubSyncUser);
-
-exports.pubsubHandleTask = functions.pubsub.topic('item-updates').onPublish(pubsubHandleTask);
