@@ -1,6 +1,6 @@
-import { rollbar } from './admin';
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
+import { rollbar } from './admin';
 const { PubSub } = require("@google-cloud/pubsub");
 
 const pubsub = new PubSub();
