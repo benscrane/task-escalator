@@ -64,9 +64,8 @@ export const chronFetchUpdatedTasks = async () => {
             todoistId: uid
         };
         const dataBuffer = Buffer.from(JSON.stringify(data));
-        pubsub.topic(pushTopic).publish(dataBuffer);
         try {
-            pubsub.topic(pushTopic).publish(dataBuffer);
+            await pubsub.topic(pushTopic).publish(dataBuffer);
         } catch (error) {
             rollbar.error('Problem pushing userID to pubsub topic', {
                 error,
