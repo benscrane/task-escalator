@@ -7,6 +7,7 @@ const pubsub = new PubSub();
 
 export const processTaskChanges = async (req: Request, res: Response) => {
   const todoistId = _.get(req.body, 'user_id');
+  console.log(req.body);
   const topic = 'todoist-updates';
   if (!todoistId) {
     res.status(500).send();
