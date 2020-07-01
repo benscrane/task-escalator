@@ -7,13 +7,13 @@ const pubsub = new PubSub();
 
 export const processTaskChanges = async (req: Request, res: Response) => {
   const todoistId = _.get(req.body, 'user_id');
-  const luckyNumber = Math.floor(Math.random() * 10);
-  if (luckyNumber === 5) {
-    const todoistInitiator = _.get(req.body, 'initiator');
-    rollbar.info('Todoist user information', {
-      todoistInitiator,
-    });
-  }
+  // const luckyNumber = Math.floor(Math.random() * 10);
+  // if (luckyNumber === 5) {
+  //   const todoistInitiator = _.get(req.body, 'initiator');
+  //   rollbar.info('Todoist user information', {
+  //     todoistInitiator,
+  //   });
+  // }
   const topic = 'todoist-updates';
   if (!todoistId) {
     res.status(500).send();
