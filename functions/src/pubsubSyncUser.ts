@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as moment from 'moment-timezone';
 import * as querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
-import { db, rollbar } from './admin';
+import { db } from './admin';
 
 export const pubsubSyncUser = async (message: any) => {
     // get todoist id
@@ -24,12 +24,12 @@ const loadUserData = async (todoistUid: any) => {
         .where('todoistUserId', '==', todoistUid);
     try {
         const userSnapshot = await userQuery.get();
-        if (userSnapshot.empty) {
-            rollbar.info('Loaded user snapshot empty', {
-                todoistID: todoistUid,
-                userQuery,
-            });
-        }
+        // if (userSnapshot.empty) {
+        //     rollbar.info('Loaded user snapshot empty', {
+        //         todoistID: todoistUid,
+        //         userQuery,
+        //     });
+        // }
         const settingsObj = userSnapshot.docs[0].data();
         settingsObj.doc_id = userSnapshot.docs[0].id;
         return settingsObj;
