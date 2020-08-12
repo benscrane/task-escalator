@@ -45,6 +45,7 @@ const loadUserData = async (todoistUid: string) => {
 interface TaskalatorUserData {
     oauthToken?: string;
     syncToken?: string;
+    doc_id?: string;
 }
 
 const getTodoistSync = async (userData: TaskalatorUserData) => {
@@ -65,7 +66,28 @@ const getTodoistSync = async (userData: TaskalatorUserData) => {
     return response.data;
 };
 
-async function escalateTodoistTask({ oauthToken, todoistTaskData }: any) {
+interface TodoistTaskData {
+    priority: number;
+    taskId: string;
+    content: string;
+    due_date_utc: string;
+}
+
+interface TaskalatorTaskData {
+
+}
+
+type TaskalatorAction = 'ESCALATE' | 'UPDATE';
+
+interface TaskActionInfo {
+    oauthToken?: string;
+    todoistTaskData: TodoistTaskData;
+    taskalatorTaskData?: TaskalatorTaskData;
+    userData?: TaskalatorUserData;
+    action?: TaskalatorAction;
+}
+
+async function escalateTodoistTask({ oauthToken, todoistTaskData }: TaskActionInfo) {
     const uuid = uuidv4();
     if (!oauthToken) {
         throw new Error("Missing params");
@@ -117,10 +139,10 @@ async function loadTaskDB({ userId, taskId}: any) {
 
 }
 
-function formatTodoistTaskData(item: any) {
+function formatTodoistTaskData(item: any): TodoistTaskData {
     const taskId = _.get(item, "id");
     const content = _.get(item, "content");
-    const priority = _.get(item, "priority");
+    const priority: number = Number.parseInt(_.get(item, "priority"), 10);
     const date = _.get(item, "due.date");
     const tz = _.get(item, "due.timezone");
     const due_date_utc = moment.tz(date, tz).utc().format();
@@ -135,16 +157,16 @@ function formatTodoistTaskData(item: any) {
     };
 }
 
-function determineActionNeeded({ escalatorTaskData, todoistTaskData, userData }: any) {
+function determineActionNeeded({ taskalatorTaskData, todoistTaskData, userData }: any) {
     // if priority changed, just update task
-    if (escalatorTaskData.current_priority !== todoistTaskData.priority) return "UPDATE";
+    if (taskalatorTaskData.current_priority !== todoistTaskData.priority) return "UPDATE";
     // compare dates
     const priority = _.get(todoistTaskData, "priority");
     const escalationDays = userData[`p${5 - priority}Days`];
     if (!escalationDays) return "UPDATE";
     const escalationMs = escalationDays * 24 * 60 * 60 * 1000;
     const incomingDueDate = new Date(todoistTaskData.due_date_utc);
-    const escalatorDueDate = new Date(escalatorTaskData.current_due_date_utc);
+    const escalatorDueDate = new Date(taskalatorTaskData.current_due_date_utc);
     if ((incomingDueDate.getTime() - escalatorDueDate.getTime()) > escalationMs) {
         return "ESCALATE";
     }
@@ -169,9 +191,9 @@ async function addEscalatedTask({ todoistTaskData, userData }: any) {
     console.log(`Add FS escalated task ${timestamp} for user ${userData.doc_id}`);
 }
 
-async function updateFirestoreTask({ escalatorTaskData, todoistTaskData, userData, action }: any) {
+async function updateFirestoreTask({ taskalatorTaskData, todoistTaskData, userData, action }: TaskActionInfo) {
     const escalate = action === "ESCALATE";
-    const escalatorPriority = Number(_.get(escalatorTaskData, "current_priority", 999));
+    const escalatorPriority = Number(_.get(taskalatorTaskData, "current_priority", 999));
     const todoistPriority = Number(_.get(todoistTaskData, "priority", 888));
     if (todoistPriority === 888) throw new Error("updateFirestoreTask: Bad todoist data");
     // content and due date always come from todoist
@@ -195,7 +217,7 @@ async function updateFirestoreTask({ escalatorTaskData, todoistTaskData, userDat
     }
     await db
         .collection("users")
-        .doc(String(userData.doc_id))
+        .doc(String(userData!.doc_id))
         .collection("trackedTasks")
         .doc(String(todoistTaskData.taskId))
         .set(dataToSave, { merge: true });
@@ -213,11 +235,11 @@ async function handleSingleTask(item: any, userData: any) {
         userId: userData.doc_id,
         taskId: item.id
     };
-    const escalatorTaskData = await loadTaskDB(dbInfo);
+    const taskalatorTaskData = await loadTaskDB(dbInfo);
     // format incoming data
     const todoistTaskData = formatTodoistTaskData(item);
     // compare and determine course of action
-    const action = determineActionNeeded({ escalatorTaskData, todoistTaskData, userData });
+    const action = determineActionNeeded({ taskalatorTaskData, todoistTaskData, userData });
     // if escalate, update todoist
     if (action === "ESCALATE") {
         const escalateInfo = {
@@ -228,7 +250,7 @@ async function handleSingleTask(item: any, userData: any) {
     }
     // update firestore with new info
     if (["ESCALATE", "UPDATE"].includes(action)) {
-        await updateFirestoreTask({ escalatorTaskData, todoistTaskData, userData });
+        await updateFirestoreTask({ taskalatorTaskData, todoistTaskData, userData });
     }
     if (action === "ESCALATE") {
         await addEscalatedTask({ todoistTaskData, userData });
