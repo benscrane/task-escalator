@@ -6,7 +6,7 @@ import { rollbar } from './admin';
 const pubsub = new PubSub();
 
 export const processTaskChanges = async (req: Request, res: Response) => {
-  const todoistId = _.get(req.body, 'user_id');
+  const todoistId: string = _.get(req, 'body.user_id');
   // const luckyNumber = Math.floor(Math.random() * 10);
   // if (luckyNumber === 5) {
   //   const todoistInitiator = _.get(req.body, 'initiator');
@@ -14,12 +14,12 @@ export const processTaskChanges = async (req: Request, res: Response) => {
   //     todoistInitiator,
   //   });
   // }
-  const topic = 'todoist-updates';
+  const topic: string = 'todoist-updates';
   if (!todoistId) {
     res.status(500).send();
   }
   const data = {
-    todoistId
+    todoistId,
   };
   const dataBuffer = Buffer.from(JSON.stringify(data));
   try {

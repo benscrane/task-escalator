@@ -5,7 +5,11 @@ import * as querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './admin';
 
-export const pubsubSyncUser = async (message: any) => {
+interface UserPubSubMessage {
+    data: string;
+}
+
+export const pubsubSyncUser = async (message: UserPubSubMessage) => {
     // get todoist id
     const data = JSON.parse(Buffer.from(message.data, 'base64').toString('utf-8')) || {};
     const todoistUid = _.get(data, 'todoistId');
@@ -19,7 +23,7 @@ export const pubsubSyncUser = async (message: any) => {
     return null;
 };
 
-const loadUserData = async (todoistUid: any) => {
+const loadUserData = async (todoistUid: string) => {
     const userQuery = db.collection('users')
         .where('todoistUserId', '==', todoistUid);
     try {
@@ -38,10 +42,15 @@ const loadUserData = async (todoistUid: any) => {
     }
 };
 
-const getTodoistSync = async (userData: any) => {
-    const token = _.get(userData, 'oauthToken');
-    const syncToken = _.get(userData, 'syncToken', '*');
-    const resourceTypes = '["items"]';
+interface TaskalatorUserData {
+    oauthToken?: string;
+    syncToken?: string;
+}
+
+const getTodoistSync = async (userData: TaskalatorUserData) => {
+    const token: string | undefined = _.get(userData, 'oauthToken');
+    const syncToken: string = _.get(userData, 'syncToken', '*');
+    const resourceTypes: string = '["items"]';
     const url = 'https://api.todoist.com/sync/v8/sync';
     if (!token) {
         throw new Error('No auth token');

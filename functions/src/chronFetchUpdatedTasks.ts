@@ -19,7 +19,13 @@ const request = {
     returnImmediately: true,
 };
 
-function extractDataFromMsg(message: any) {
+interface TaskPubSubMessage {
+    message: {
+        data: string;
+    };
+}
+
+function extractDataFromMsg(message: TaskPubSubMessage) {
     const buff = Buffer.from(message.message.data, "base64");
     const text = buff.toString('utf-8');
     const data = JSON.parse(text);
@@ -28,7 +34,7 @@ function extractDataFromMsg(message: any) {
 
 export const chronFetchUpdatedTasks = async () => {
     // pull events from todoist-updates
-    let messages: any[] = [];
+    let messages: TaskPubSubMessage[] = [];
     try {
         const [response] = await client.pull(request);
         messages = response.receivedMessages;
