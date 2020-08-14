@@ -4,37 +4,36 @@ import * as moment from 'moment-timezone';
 import * as querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './admin';
-
-interface UserPubSubMessage {
-    data: string;
-}
+import {
+    UserPubSubMessage,
+    PubsubMessageData,
+    TaskalatorUserData,
+    TaskActionInfo,
+    TodoistTaskData,
+    TodoistSyncData,
+} from './types';
 
 export const pubsubSyncUser = async (message: UserPubSubMessage) => {
     // get todoist id
-    const data = JSON.parse(Buffer.from(message.data, 'base64').toString('utf-8')) || {};
-    const todoistUid = _.get(data, 'todoistId');
+    const data: PubsubMessageData = JSON.parse(Buffer.from(message.data, 'base64').toString('utf-8')) || {};
+    const todoistUid = data.todoistId;
     if (!todoistUid) return null;
     // find and load user data from db
-    const userData = await loadUserData(todoistUid);
+    const userData: TaskalatorUserData = await loadUserData(todoistUid);
     // get changes from todoist
-    const todoistData = await getTodoistSync(userData);
+    const todoistData: TodoistSyncData = await getTodoistSync(userData);
     // process todoist changes
     await processTaskUpdates(todoistData, userData);
     return null;
 };
 
-const loadUserData = async (todoistUid: string) => {
+const loadUserData = async (todoistUid: string): Promise<TaskalatorUserData> => {
     const userQuery = db.collection('users')
         .where('todoistUserId', '==', todoistUid);
+
     try {
         const userSnapshot = await userQuery.get();
-        // if (userSnapshot.empty) {
-        //     rollbar.info('Loaded user snapshot empty', {
-        //         todoistID: todoistUid,
-        //         userQuery,
-        //     });
-        // }
-        const settingsObj = userSnapshot.docs[0].data();
+        const settingsObj: TaskalatorUserData = userSnapshot.docs[0].data();
         settingsObj.doc_id = userSnapshot.docs[0].id;
         return settingsObj;
     } catch (err) {
@@ -42,20 +41,16 @@ const loadUserData = async (todoistUid: string) => {
     }
 };
 
-interface TaskalatorUserData {
-    oauthToken?: string;
-    syncToken?: string;
-    doc_id?: string;
-}
-
-const getTodoistSync = async (userData: TaskalatorUserData) => {
+const getTodoistSync = async (userData: TaskalatorUserData): Promise<TodoistSyncData> => {
     const token: string | undefined = _.get(userData, 'oauthToken');
-    const syncToken: string = _.get(userData, 'syncToken', '*');
-    const resourceTypes: string = '["items"]';
-    const url = 'https://api.todoist.com/sync/v8/sync';
     if (!token) {
         throw new Error('No auth token');
     }
+
+    const syncToken: string = _.get(userData, 'syncToken', '*');
+    const resourceTypes: string = '["items"]';
+    const url: string = 'https://api.todoist.com/sync/v8/sync';
+
     // make api request
     const data = {
         token,
@@ -65,27 +60,6 @@ const getTodoistSync = async (userData: TaskalatorUserData) => {
     const response = await axios.post(url, querystring.stringify(data));
     return response.data;
 };
-
-interface TodoistTaskData {
-    priority: number;
-    taskId: string;
-    content: string;
-    due_date_utc: string;
-}
-
-interface TaskalatorTaskData {
-
-}
-
-type TaskalatorAction = 'ESCALATE' | 'UPDATE';
-
-interface TaskActionInfo {
-    oauthToken?: string;
-    todoistTaskData: TodoistTaskData;
-    taskalatorTaskData?: TaskalatorTaskData;
-    userData?: TaskalatorUserData;
-    action?: TaskalatorAction;
-}
 
 async function escalateTodoistTask({ oauthToken, todoistTaskData }: TaskActionInfo) {
     const uuid = uuidv4();
@@ -173,7 +147,11 @@ function determineActionNeeded({ taskalatorTaskData, todoistTaskData, userData }
     return "UPDATE";
 }
 
-async function addEscalatedTask({ todoistTaskData, userData }: any) {
+async function addEscalatedTask({ todoistTaskData, userData }: TaskActionInfo) {
+    // TODO: should be a more graceful way to handle this
+    if (!userData || !userData.doc_id) {
+        throw new Error('Missing user document ID');
+    }
     // content, previous_priority, new_priority, tracked_task_id
     const dataToSave = {
         content: todoistTaskData.content,
@@ -225,7 +203,7 @@ async function updateFirestoreTask({ taskalatorTaskData, todoistTaskData, userDa
     return;
 }
 
-async function handleSingleTask(item: any, userData: any) {
+async function handleSingleTask(item: any, userData: TaskalatorUserData) {
     // load from database
     const dbInfo = {
         userId: userData.doc_id,
@@ -263,8 +241,8 @@ async function updateSyncToken({ userDocId, newSyncToken }: any) {
     return;
 }
 
-async function processTaskUpdates(todoistData: any, userData: any) {
-    const items = _.get(todoistData, "items") || [];
+async function processTaskUpdates(todoistData: TodoistSyncData, userData: TaskalatorUserData) {
+    const items = _.get(todoistData, "items", []);
     const filteredItems = filterTasks(items);
     if (_.isEmpty(filteredItems)) {
         return;
