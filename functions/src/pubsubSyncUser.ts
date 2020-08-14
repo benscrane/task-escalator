@@ -226,10 +226,6 @@ async function updateFirestoreTask({ taskalatorTaskData, todoistTaskData, userDa
 }
 
 async function handleSingleTask(item: any, userData: any) {
-    // console.log({
-    //    ...item,
-    //    location: "top of handleSingleTask"
-    // });
     // load from database
     const dbInfo = {
         userId: userData.doc_id,
