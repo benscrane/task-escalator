@@ -14,14 +14,12 @@ export interface TaskPubSubMessage {
 
 // TODO: why are UserPSMessage and TaskPSMessage different?
 
-export type TaskalatorAction = 'ESCALATE' | 'UPDATE';
-
 export interface TaskActionInfo {
     oauthToken?: string;
     todoistTaskData: Todoist.Task;
     taskalatorTaskData?: Taskalator.Task;
     userData?: Taskalator.User;
-    action?: TaskalatorAction;
+    action?: Taskalator.Action;
 }
 
 export interface TodoistSyncData {
@@ -41,6 +39,8 @@ export interface TempTask {
 }
 
 export namespace Taskalator {
+    export type Action = 'ESCALATE' | 'UPDATE';
+
     export interface Task {
         current_priority?: number;
         current_due_date_utc? : string;

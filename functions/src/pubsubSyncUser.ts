@@ -10,7 +10,6 @@ import {
     TempTask,
     TodoistSyncData,
     UserPubSubMessage,
-    TaskalatorAction,
     Taskalator,
     Todoist,
 } from './types';
@@ -137,7 +136,7 @@ export interface DetermineActionNeededInfo {
     user: Taskalator.User;
 }
 
-export const determineActionNeeded = ({ taskalatorTask, todoistTask, user }: DetermineActionNeededInfo): TaskalatorAction => {
+export const determineActionNeeded = ({ taskalatorTask, todoistTask, user }: DetermineActionNeededInfo): Taskalator.Action => {
     // new priority set by user
     if (taskalatorTask.current_priority !== todoistTask.priority) {
         return 'UPDATE';
@@ -154,7 +153,7 @@ export const determineActionNeeded = ({ taskalatorTask, todoistTask, user }: Det
     const escalationMs = escalationDays * 24 * 60 * 60 * 1000;
     const incomingDueDate = new Date(todoistTask.due_date_utc);
     const taskalatorDueDate = new Date(taskalatorTask.current_due_date_utc!);    // TODO: should we be overriding this?
-    
+
     if ((incomingDueDate.getTime() - taskalatorDueDate.getTime()) >= escalationMs) {
         return 'ESCALATE';
     }
