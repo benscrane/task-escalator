@@ -12,6 +12,7 @@ import {
     TodoistTaskData,
     TodoistSyncData,
     UserPubSubMessage,
+    TaskalatorTaskData,
 } from './types';
 
 export const pubsubSyncUser = async (message: UserPubSubMessage) => {
@@ -130,18 +131,24 @@ function formatTodoistTaskData(item: TempTask): TodoistTaskData {
     };
 }
 
-export const determineActionNeeded = ({ taskalatorTaskData, todoistTaskData, userData }: any) => {
+export interface DetermineActionNeededInfo {
+    taskalatorTaskData: TaskalatorTaskData;
+    todoistTaskData: TodoistTaskData;
+    userData: TaskalatorUserData;
+}
+
+export const determineActionNeeded = ({ taskalatorTaskData, todoistTaskData, userData }: DetermineActionNeededInfo) => {
     // if priority changed, just update task
     if (taskalatorTaskData.current_priority !== todoistTaskData.priority) {
         return 'UPDATE';
     }
     // compare dates
     const priority = _.get(todoistTaskData, 'priority');
-    const escalationDays = userData[`p${5 - priority}Days`];
+    const escalationDays = _.get(userData, `p${5-priority}Days`);
     if (!escalationDays) return 'UPDATE';
     const escalationMs = escalationDays * 24 * 60 * 60 * 1000;
     const incomingDueDate = new Date(todoistTaskData.due_date_utc);
-    const escalatorDueDate = new Date(taskalatorTaskData.current_due_date_utc);
+    const escalatorDueDate = new Date(taskalatorTaskData.current_due_date_utc!);    // TODO: should we be overriding this?
     if ((incomingDueDate.getTime() - escalatorDueDate.getTime()) > escalationMs) {
         return 'ESCALATE';
     }
@@ -149,8 +156,8 @@ export const determineActionNeeded = ({ taskalatorTaskData, todoistTaskData, use
 };
 
 async function addEscalatedTask({ todoistTaskData, userData }: TaskActionInfo) {
-    // TODO: should be a more graceful way to handle this
-    if (!userData || !userData.doc_id) {
+    const userDocId = _.get(userData, 'doc_id');
+    if (!userData || !userDocId) {
         throw new Error('Missing user document ID');
     }
     // content, previous_priority, new_priority, tracked_task_id
@@ -163,7 +170,7 @@ async function addEscalatedTask({ todoistTaskData, userData }: TaskActionInfo) {
     const timestamp = new Date().getTime();
     await db
         .collection("users")
-        .doc(userData.doc_id)
+        .doc(userDocId)
         .collection("escalatedTasks")
         .doc(String(timestamp))
         .set(dataToSave);
@@ -210,7 +217,7 @@ async function handleSingleTask(item: TempTask, userData: TaskalatorUserData) {
         userId: userData.doc_id,
         taskId: item.id
     };
-    const taskalatorTaskData = await loadTaskDB(dbInfo);
+    const taskalatorTaskData: any = await loadTaskDB(dbInfo);
     // format incoming data
     const todoistTaskData = formatTodoistTaskData(item);
     // compare and determine course of action
