@@ -15,3 +15,5 @@ export const createUserDocument = (user: TaskalatorUser) => {
   );
   return setUser;
 };
+
+export const tempFunction = () => true;
