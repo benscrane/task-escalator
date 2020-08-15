@@ -8,6 +8,7 @@ import {
     PubsubMessageData,
     TaskalatorUserData,
     TaskActionInfo,
+    TempTask,
     TodoistTaskData,
     TodoistSyncData,
     UserPubSubMessage,
@@ -86,16 +87,14 @@ async function escalateTodoistTask({ oauthToken, todoistTaskData }: TaskActionIn
     return;
 }
 
-// filter no due date and recurring tasks
-// should we filter out completed tasks we don't need to store all that
-export const filterTasks = (items: any) => {
-    return items.filter((item: any) => {
+export const filterTasks = (items: TempTask[]): TempTask[] => {
+    return items.filter((item: TempTask) => {
         if (!_.get(item, "due")) return false;
         if (_.get(item, "due.is_recurring")) return false;
         if (_.get(item, "checked")) return false;
         return true;
-    })
-}
+    });
+};
 
 // return task document or empty document if none exists
 async function loadTaskDB({ userId, taskId}: any) {
@@ -113,10 +112,10 @@ async function loadTaskDB({ userId, taskId}: any) {
 
 }
 
-function formatTodoistTaskData(item: any): TodoistTaskData {
+function formatTodoistTaskData(item: TempTask): TodoistTaskData {
     const taskId = _.get(item, "id");
     const content = _.get(item, "content");
-    const priority: number = Number.parseInt(_.get(item, "priority"), 10);
+    const priority: number = Number.parseInt(_.get(item, 'priority', ''), 10);
     const date = _.get(item, "due.date");
     const tz = _.get(item, "due.timezone");
     const due_date_utc = moment.tz(date, tz).utc().format();
@@ -131,21 +130,23 @@ function formatTodoistTaskData(item: any): TodoistTaskData {
     };
 }
 
-function determineActionNeeded({ taskalatorTaskData, todoistTaskData, userData }: any) {
+export const determineActionNeeded = ({ taskalatorTaskData, todoistTaskData, userData }: any) => {
     // if priority changed, just update task
-    if (taskalatorTaskData.current_priority !== todoistTaskData.priority) return "UPDATE";
+    if (taskalatorTaskData.current_priority !== todoistTaskData.priority) {
+        return 'UPDATE';
+    }
     // compare dates
-    const priority = _.get(todoistTaskData, "priority");
+    const priority = _.get(todoistTaskData, 'priority');
     const escalationDays = userData[`p${5 - priority}Days`];
-    if (!escalationDays) return "UPDATE";
+    if (!escalationDays) return 'UPDATE';
     const escalationMs = escalationDays * 24 * 60 * 60 * 1000;
     const incomingDueDate = new Date(todoistTaskData.due_date_utc);
     const escalatorDueDate = new Date(taskalatorTaskData.current_due_date_utc);
     if ((incomingDueDate.getTime() - escalatorDueDate.getTime()) > escalationMs) {
-        return "ESCALATE";
+        return 'ESCALATE';
     }
-    return "UPDATE";
-}
+    return 'UPDATE';
+};
 
 async function addEscalatedTask({ todoistTaskData, userData }: TaskActionInfo) {
     // TODO: should be a more graceful way to handle this
@@ -203,7 +204,7 @@ async function updateFirestoreTask({ taskalatorTaskData, todoistTaskData, userDa
     return;
 }
 
-async function handleSingleTask(item: any, userData: TaskalatorUserData) {
+async function handleSingleTask(item: TempTask, userData: TaskalatorUserData) {
     // load from database
     const dbInfo = {
         userId: userData.doc_id,
