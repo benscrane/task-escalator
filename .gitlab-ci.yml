@@ -11,7 +11,7 @@ ver:
     - node --version
     - whoami
 
-run_test:
+run_tests:
   stage: test
   script:
     - echo "No frontend tests yest"
