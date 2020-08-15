@@ -3,9 +3,7 @@
 An extension for Todoist.
 
 ![coverage](https://gitlab.com/gitlab-org/gitlab/badges/master/coverage.svg?job=run_tests)
-
 [![coverage report](https://gitlab.com/benscrane/task-escalator/badges/refactor/coverage.svg)](https://gitlab.com/benscrane/task-escalator/-/commits/refactor)
-
 [![pipeline status](https://gitlab.com/benscrane/task-escalator/badges/master/pipeline.svg)](https://gitlab.com/benscrane/task-escalator/-/commits/master)
 
 ## Setup
