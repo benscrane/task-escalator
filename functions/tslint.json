@@ -16,11 +16,10 @@
         "check-format"
       ]
     },
-
-
     "no-duplicate-variable": [true, "check-parameters"],
     "no-floating-promises": true,
-    "no-implicit-dependencies": true
+    "no-implicit-dependencies": true,
+    "no-any": true
   },
 
   "defaultSeverity": "error"

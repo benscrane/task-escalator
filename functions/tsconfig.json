@@ -10,9 +10,14 @@
     "strict": true,
     "target": "es2017",
     "allowJs": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "types": [
+      "node",
+      "jest"
+    ]
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "tests/**/*.ts"
   ]
 }

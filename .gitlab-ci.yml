@@ -1,8 +1,8 @@
-image: node:8.17.0
+image: node:12.18
 
 stages:
   - ver
-  - tests
+  - test
   - deploy
 
 ver:
@@ -11,10 +11,12 @@ ver:
     - node --version
     - whoami
 
-run_test:
-  stage: tests
+run_tests:
+  stage: test
   script:
-    - echo "Add tests later"
+    - echo "No frontend tests yest"
+    - npm install --prefix ./functions
+    - npm run test --prefix ./functions
 
 deploy:
   stage: deploy
