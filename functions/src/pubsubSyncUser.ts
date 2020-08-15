@@ -88,7 +88,7 @@ async function escalateTodoistTask({ oauthToken, todoistTaskData }: TaskActionIn
 
 // filter no due date and recurring tasks
 // should we filter out completed tasks we don't need to store all that
-function filterTasks(items: any) {
+export const filterTasks = (items: any) => {
     return items.filter((item: any) => {
         if (!_.get(item, "due")) return false;
         if (_.get(item, "due.is_recurring")) return false;
