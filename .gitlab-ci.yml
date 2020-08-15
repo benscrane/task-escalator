@@ -15,6 +15,7 @@ run_test:
   stage: test
   script:
     - echo "No frontend tests yest"
+    - npm install --prefix ./functions
     - npm run test --prefix ./functions
 
 deploy:
