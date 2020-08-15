@@ -6,13 +6,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { db } from './admin';
 import {
     PubsubMessageData,
-    TaskalatorUserData,
     TaskActionInfo,
     TempTask,
-    TodoistTaskData,
     TodoistSyncData,
     UserPubSubMessage,
-    TaskalatorTaskData,
+    TaskalatorAction,
+    Taskalator,
+    Todoist,
 } from './types';
 
 export const pubsubSyncUser = async (message: UserPubSubMessage) => {
@@ -21,7 +21,7 @@ export const pubsubSyncUser = async (message: UserPubSubMessage) => {
     const todoistUid = data.todoistId;
     if (!todoistUid) return null;
     // find and load user data from db
-    const userData: TaskalatorUserData = await loadUserData(todoistUid);
+    const userData: Taskalator.User = await loadUserData(todoistUid);
     // get changes from todoist
     const todoistData: TodoistSyncData = await getTodoistSync(userData);
     // process todoist changes
@@ -29,13 +29,13 @@ export const pubsubSyncUser = async (message: UserPubSubMessage) => {
     return null;
 };
 
-const loadUserData = async (todoistUid: string): Promise<TaskalatorUserData> => {
+const loadUserData = async (todoistUid: string): Promise<Taskalator.User> => {
     const userQuery = db.collection('users')
         .where('todoistUserId', '==', todoistUid);
 
     try {
         const userSnapshot = await userQuery.get();
-        const settingsObj: TaskalatorUserData = userSnapshot.docs[0].data();
+        const settingsObj: Taskalator.User = userSnapshot.docs[0].data();
         settingsObj.doc_id = userSnapshot.docs[0].id;
         return settingsObj;
     } catch (err) {
@@ -43,7 +43,7 @@ const loadUserData = async (todoistUid: string): Promise<TaskalatorUserData> => 
     }
 };
 
-const getTodoistSync = async (userData: TaskalatorUserData): Promise<TodoistSyncData> => {
+const getTodoistSync = async (userData: Taskalator.User): Promise<TodoistSyncData> => {
     const token: string | undefined = _.get(userData, 'oauthToken');
     if (!token) {
         throw new Error('No auth token');
@@ -113,7 +113,7 @@ async function loadTaskDB({ userId, taskId}: any) {
 
 }
 
-function formatTodoistTaskData(item: TempTask): TodoistTaskData {
+function formatTodoistTaskData(item: TempTask): Todoist.Task {
     const taskId = _.get(item, "id");
     const content = _.get(item, "content");
     const priority: number = Number.parseInt(_.get(item, 'priority', ''), 10);
@@ -132,23 +132,23 @@ function formatTodoistTaskData(item: TempTask): TodoistTaskData {
 }
 
 export interface DetermineActionNeededInfo {
-    taskalatorTaskData: TaskalatorTaskData;
-    todoistTaskData: TodoistTaskData;
-    userData: TaskalatorUserData;
+    taskalatorTask: Taskalator.Task;
+    todoistTask: Todoist.Task;
+    user: Taskalator.User;
 }
 
-export const determineActionNeeded = ({ taskalatorTaskData, todoistTaskData, userData }: DetermineActionNeededInfo) => {
+export const determineActionNeeded = ({ taskalatorTask, todoistTask, user }: DetermineActionNeededInfo): TaskalatorAction => {
     // if priority changed, just update task
-    if (taskalatorTaskData.current_priority !== todoistTaskData.priority) {
+    if (taskalatorTask.current_priority !== todoistTask.priority) {
         return 'UPDATE';
     }
     // compare dates
-    const priority = _.get(todoistTaskData, 'priority');
-    const escalationDays = _.get(userData, `p${5-priority}Days`);
+    const priority = _.get(todoistTask, 'priority');
+    const escalationDays = _.get(user, `p${5-priority}Days`);
     if (!escalationDays) return 'UPDATE';
     const escalationMs = escalationDays * 24 * 60 * 60 * 1000;
-    const incomingDueDate = new Date(todoistTaskData.due_date_utc);
-    const escalatorDueDate = new Date(taskalatorTaskData.current_due_date_utc!);    // TODO: should we be overriding this?
+    const incomingDueDate = new Date(todoistTask.due_date_utc);
+    const escalatorDueDate = new Date(taskalatorTask.current_due_date_utc!);    // TODO: should we be overriding this?
     if ((incomingDueDate.getTime() - escalatorDueDate.getTime()) > escalationMs) {
         return 'ESCALATE';
     }
@@ -211,31 +211,31 @@ async function updateFirestoreTask({ taskalatorTaskData, todoistTaskData, userDa
     return;
 }
 
-async function handleSingleTask(item: TempTask, userData: TaskalatorUserData) {
+async function handleSingleTask(item: TempTask, userData: Taskalator.User) {
     // load from database
     const dbInfo = {
         userId: userData.doc_id,
         taskId: item.id
     };
-    const taskalatorTaskData: any = await loadTaskDB(dbInfo);
+    const taskalatorTask: any = await loadTaskDB(dbInfo);
     // format incoming data
-    const todoistTaskData = formatTodoistTaskData(item);
+    const todoistTask = formatTodoistTaskData(item);
     // compare and determine course of action
-    const action = determineActionNeeded({ taskalatorTaskData, todoistTaskData, userData });
+    const action = determineActionNeeded({ taskalatorTask, todoistTask, user: userData });
     // if escalate, update todoist
     if (action === "ESCALATE") {
         const escalateInfo = {
             oauthToken: userData.oauthToken,
-            todoistTaskData
+            todoistTaskData: todoistTask
         };
         await escalateTodoistTask(escalateInfo);
     }
     // update firestore with new info
     if (["ESCALATE", "UPDATE"].includes(action)) {
-        await updateFirestoreTask({ taskalatorTaskData, todoistTaskData, userData });
+        await updateFirestoreTask({ taskalatorTaskData: taskalatorTask, todoistTaskData: todoistTask, userData });
     }
     if (action === "ESCALATE") {
-        await addEscalatedTask({ todoistTaskData, userData });
+        await addEscalatedTask({ todoistTaskData: todoistTask, userData });
     }
     // we made it
     return;
@@ -249,7 +249,7 @@ async function updateSyncToken({ userDocId, newSyncToken }: any) {
     return;
 }
 
-async function processTaskUpdates(todoistData: TodoistSyncData, userData: TaskalatorUserData) {
+async function processTaskUpdates(todoistData: TodoistSyncData, userData: Taskalator.User) {
     const items = _.get(todoistData, "items", []);
     const filteredItems = filterTasks(items);
     if (_.isEmpty(filteredItems)) {

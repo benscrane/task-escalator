@@ -1,10 +1,9 @@
 import 'jest';
 import '../testHelpers/mockFirebaseSetup';
 import {
-    TaskalatorTaskData,
+    Taskalator,
     TempTask,
-    TodoistTaskData,
-    TaskalatorUserData
+    Todoist,
 } from '../src/types';
 
 import * as pubsubSyncUser from '../src/pubsubSyncUser';
@@ -54,51 +53,51 @@ describe('Module: pubsubSyncUser', () => {
     });
 
     describe('Function: determineActionNeeded', () => {
-        let taskaltorData: TaskalatorTaskData;
-        let todoistData: TodoistTaskData;
-        let userData: TaskalatorUserData;
+        let taskalatorTask: Taskalator.Task;
+        let todoistTask: Todoist.Task;
+        let user: Taskalator.User;
 
         beforeEach(() => {
-            taskaltorData = {
+            taskalatorTask = {
                 current_priority: 2,
             };
 
-            todoistData = {
+            todoistTask = {
                 priority: 4,
                 taskId: 100,
                 due_date_utc: 'temp',
                 content: 'Test task',
             };
 
-            userData = {
+            user = {
                 p2Days: 7,
             };
         });
 
         it('should return UPDATE if incoming task has new priority', () => {
-            taskaltorData.current_priority = 1;
-            todoistData.priority = 2;
+            taskalatorTask.current_priority = 1;
+            todoistTask.priority = 2;
 
-            const input = {
-                taskalatorTaskData: taskaltorData,
-                todoistTaskData: todoistData,
-                userData,
+            const input: pubsubSyncUser.DetermineActionNeededInfo = {
+                taskalatorTask,
+                todoistTask,
+                user,
             };
             const output = pubsubSyncUser.determineActionNeeded(input);
             expect(output).toEqual('UPDATE');
         });
 
         it('should return ESCALATE if past escalation days', () => {
-            todoistData.priority = 3;
-            taskaltorData.current_priority = 3;
-            todoistData.due_date_utc = '2020-08-04';
-            taskaltorData.current_due_date_utc = '2020-08-01T00:00:00Z';
-            userData.p2Days = 2;
+            todoistTask.priority = 3;
+            taskalatorTask.current_priority = 3;
+            todoistTask.due_date_utc = '2020-08-04';
+            taskalatorTask.current_due_date_utc = '2020-08-01T00:00:00Z';
+            user.p2Days = 2;
 
-            const input = {
-                taskalatorTaskData: taskaltorData,
-                todoistTaskData: todoistData,
-                userData,
+            const input: pubsubSyncUser.DetermineActionNeededInfo = {
+                taskalatorTask,
+                todoistTask,
+                user,
             };
 
             const output = pubsubSyncUser.determineActionNeeded(input);
@@ -106,16 +105,16 @@ describe('Module: pubsubSyncUser', () => {
         });
 
         it('should return UPDATE if user has no escalation days set', () => {
-            todoistData.priority = 3;
-            taskaltorData.current_priority = 3;
-            todoistData.due_date_utc = '2020-08-04';
-            taskaltorData.current_due_date_utc = '2020-08-01T00:00:00Z';
-            delete userData.p2Days;
+            todoistTask.priority = 3;
+            taskalatorTask.current_priority = 3;
+            todoistTask.due_date_utc = '2020-08-04';
+            taskalatorTask.current_due_date_utc = '2020-08-01T00:00:00Z';
+            delete user.p2Days;
 
-            const input = {
-                taskalatorTaskData: taskaltorData,
-                todoistTaskData: todoistData,
-                userData,
+            const input: pubsubSyncUser.DetermineActionNeededInfo = {
+                taskalatorTask,
+                todoistTask,
+                user,
             };
 
             const output = pubsubSyncUser.determineActionNeeded(input);
@@ -123,16 +122,16 @@ describe('Module: pubsubSyncUser', () => {
         });
 
         it('should return UPDATE if not past escalation days', () => {
-            todoistData.priority = 3;
-            taskaltorData.current_priority = 3;
-            todoistData.due_date_utc = '2020-08-04';
-            taskaltorData.current_due_date_utc = '2020-08-01T00:00:00Z';
-            userData.p2Days = 5;
+            todoistTask.priority = 3;
+            taskalatorTask.current_priority = 3;
+            todoistTask.due_date_utc = '2020-08-04';
+            taskalatorTask.current_due_date_utc = '2020-08-01T00:00:00Z';
+            user.p2Days = 5;
 
-            const input = {
-                taskalatorTaskData: taskaltorData,
-                todoistTaskData: todoistData,
-                userData,
+            const input: pubsubSyncUser.DetermineActionNeededInfo = {
+                taskalatorTask,
+                todoistTask,
+                user,
             };
 
             const output = pubsubSyncUser.determineActionNeeded(input);

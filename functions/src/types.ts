@@ -14,38 +14,13 @@ export interface TaskPubSubMessage {
 
 // TODO: why are UserPSMessage and TaskPSMessage different?
 
-export interface TaskalatorUserData {
-    oauthToken?: string;
-    syncToken?: string;
-    doc_id?: string;
-    p2Days?: number;
-    p3Days?: number;
-    p4Days?: number;
-    todoistLinked?: boolean;
-    todoistUserId?: number;
-}
-
-export interface TodoistTaskData {
-    priority: number;
-    taskId: number;
-    content: string;
-    due_date_utc: string;
-}
-
-export interface TaskalatorTaskData {
-    current_priority?: number;
-    current_due_date_utc? : string;
-    content?: string;
-    original_due_date_utc?: string;
-}
-
 export type TaskalatorAction = 'ESCALATE' | 'UPDATE';
 
 export interface TaskActionInfo {
     oauthToken?: string;
-    todoistTaskData: TodoistTaskData;
-    taskalatorTaskData?: TaskalatorTaskData;
-    userData?: TaskalatorUserData;
+    todoistTaskData: Todoist.Task;
+    taskalatorTaskData?: Taskalator.Task;
+    userData?: Taskalator.User;
     action?: TaskalatorAction;
 }
 
@@ -63,4 +38,33 @@ export interface TempTask {
     id: number;
     content?: string;
     priority?: string;
+}
+
+export namespace Taskalator {
+    export interface Task {
+        current_priority?: number;
+        current_due_date_utc? : string;
+        content?: string;
+        original_due_date_utc?: string;
+    }
+
+    export interface User {
+        oauthToken?: string;
+        syncToken?: string;
+        doc_id?: string;
+        p2Days?: number;
+        p3Days?: number;
+        p4Days?: number;
+        todoistLinked?: boolean;
+        todoistUserId?: number;
+    }
+}
+
+export namespace Todoist {
+    export interface Task {
+        priority: number;
+        taskId: number;
+        content: string;
+        due_date_utc: string;
+    }
 }
