@@ -90,7 +90,7 @@ describe('Module: pubsubSyncUser', () => {
         it('should return ESCALATE if past escalation days', () => {
             todoistTask.priority = 3;
             taskalatorTask.current_priority = 3;
-            todoistTask.due_date_utc = '2020-08-04';
+            todoistTask.due_date_utc = '2020-08-03';
             taskalatorTask.current_due_date_utc = '2020-08-01T00:00:00Z';
             user.p2Days = 2;
 
