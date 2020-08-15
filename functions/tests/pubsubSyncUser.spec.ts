@@ -1,4 +1,6 @@
 import 'jest';
+import '../testHelpers/mockFirebaseSetup';
+
 import * as pubsubSyncUser from '../src/pubsubSyncUser';
 
 describe('Module: pubsubSyncUser', () => {
