@@ -2,6 +2,8 @@
 **/*.js
 **/*.js.map
 
+!jest.config.js
+
 # Typescript v1 declaration files
 typings/
 

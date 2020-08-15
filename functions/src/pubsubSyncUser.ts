@@ -5,12 +5,12 @@ import * as querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './admin';
 import {
-    UserPubSubMessage,
     PubsubMessageData,
     TaskalatorUserData,
     TaskActionInfo,
     TodoistTaskData,
     TodoistSyncData,
+    UserPubSubMessage,
 } from './types';
 
 export const pubsubSyncUser = async (message: UserPubSubMessage) => {
