@@ -7,12 +7,14 @@ import { db } from './admin';
 import {
     PubsubMessageData,
     TaskActionInfo,
+    Taskalator,
     TempTask,
+    Todoist,
     TodoistSyncData,
     UserPubSubMessage,
-    Taskalator,
-    Todoist,
 } from './types';
+
+// tslint:disable:no-any
 
 export const pubsubSyncUser = async (message: UserPubSubMessage) => {
     // get todoist id
@@ -143,7 +145,7 @@ export const determineActionNeeded = ({ taskalatorTask, todoistTask, user }: Det
     }
 
     const priority = _.get(todoistTask, 'priority');
-    const escalationDays = _.get(user, `p${5-priority}Days`);
+    const escalationDays = _.get(user, `p${5 - priority}Days`);
 
     // user doesn't want to escalate these tasks
     if (!escalationDays) {

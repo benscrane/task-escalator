@@ -1,3 +1,5 @@
+// tslint:disable:no-namespace
+
 export interface UserPubSubMessage {
     data: string;
 }
