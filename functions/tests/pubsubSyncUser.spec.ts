@@ -1,10 +1,10 @@
 import 'jest';
-import '../testHelpers/mockFirebaseSetup';
 import {
     Taskalator,
     TempTask,
     Todoist,
 } from '../src/types';
+import '../testHelpers/mockFirebaseSetup';
 
 import * as pubsubSyncUser from '../src/pubsubSyncUser';
 

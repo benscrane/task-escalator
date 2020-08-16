@@ -1,7 +1,11 @@
 {
   "extends": ["tslint:latest"],
   "linterOptions": {
-    "exclude": ["**/*.json", "./*.json"]
+    "exclude": [
+      "**/*.json",
+      "./*.json",
+      "tests/**/*.ts"
+    ]
   },
   "rules": {
     "no-parameter-reassignment": true,

@@ -26,6 +26,8 @@ const request = {
     returnImmediately: true,
 };
 
+// tslint:disable:no-any
+
 function extractDataFromMsg(message: TaskPubSubMessage): PubsubMessageData {
     const buff = Buffer.from(message.message.data, "base64");
     const text = buff.toString('utf-8');
