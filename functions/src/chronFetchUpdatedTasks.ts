@@ -6,8 +6,6 @@ import {
     TaskPubSubMessage,
 } from './types';
 
-export const tempFunction = () => true;
-
 // TODO: loading these defaults should be in a function
 const client = new PubSub.v1.SubscriberClient();
 const pubsub = new PubSub.PubSub();
