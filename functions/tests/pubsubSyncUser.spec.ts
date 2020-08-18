@@ -158,7 +158,7 @@ describe('Module: pubsubSyncUser', () => {
                 due_date_utc: '2020-09-01T00:00:00Z'
             };
     
-            const output = pubsubSyncUser.formatTodoistTaskData(input);
+            const output = pubsubSyncUser.formatTodoistTask(input);
             expect(output).toStrictEqual(expectedOutput);
         });
     });
