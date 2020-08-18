@@ -138,4 +138,28 @@ describe('Module: pubsubSyncUser', () => {
             expect(output).toEqual('UPDATE');
         });
     });
+
+    describe('Function: formatTodoistTask', () => {
+        it('should format the task correctly', () => {
+            const input: TempTask = {
+                id: 100,
+                content: 'test task',
+                priority: '2',
+                due: {
+                    date: '2020-09-01',
+                    is_recurring: false,
+                }
+            };
+    
+            const expectedOutput: Todoist.Task = {
+                content: 'test task',
+                taskId: 100,
+                priority: 2,
+                due_date_utc: '2020-09-01T00:00:00Z'
+            };
+    
+            const output = pubsubSyncUser.formatTodoistTaskData(input);
+            expect(output).toStrictEqual(expectedOutput);
+        });
+    });
 });

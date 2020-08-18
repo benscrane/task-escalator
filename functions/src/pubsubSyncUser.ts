@@ -114,7 +114,7 @@ async function loadTaskDB({ userId, taskId}: any) {
 
 }
 
-function formatTodoistTaskData(item: TempTask): Todoist.Task {
+export const formatTodoistTask = (item: TempTask): Todoist.Task => {
     const taskId = _.get(item, "id");
     const content = _.get(item, "content");
     const priority: number = Number.parseInt(_.get(item, 'priority', ''), 10);
@@ -130,7 +130,7 @@ function formatTodoistTaskData(item: TempTask): Todoist.Task {
         priority,
         taskId
     };
-}
+};
 
 export interface DetermineActionNeededInfo {
     taskalatorTask: Taskalator.Task;
@@ -227,7 +227,7 @@ async function handleSingleTask(item: TempTask, userData: Taskalator.User) {
     };
     const taskalatorTask: any = await loadTaskDB(dbInfo);
     // format incoming data
-    const todoistTask = formatTodoistTaskData(item);
+    const todoistTask = formatTodoistTask(item);
     // compare and determine course of action
     const action = determineActionNeeded({ taskalatorTask, todoistTask, user: userData });
     // if escalate, update todoist
