@@ -5,8 +5,6 @@ import { rollbar } from './admin';
 
 const pubsub = new PubSub();
 
-export const tempFunction = () => true;
-
 // TODO: make interface that extends Request
 
 export const processTaskChanges = async (req: Request, res: Response) => {
