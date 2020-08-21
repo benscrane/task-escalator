@@ -10,7 +10,6 @@ import {
     Taskalator,
     TempTask,
     Todoist,
-    TodoistSyncData,
     UserPubSubMessage,
 } from './types';
 
@@ -24,7 +23,7 @@ export const pubsubSyncUser = async (message: UserPubSubMessage) => {
     // find and load user data from db
     const userData: Taskalator.User = await loadUserData(todoistUid);
     // get changes from todoist
-    const todoistData: TodoistSyncData = await getTodoistSync(userData);
+    const todoistData: Todoist.SyncResponse = await getTodoistSync(userData);
     // process todoist changes
     await processTaskUpdates(todoistData, userData);
     return null;
@@ -44,7 +43,7 @@ export const loadUserData = async (todoistUid: string): Promise<Taskalator.User>
     }
 };
 
-const getTodoistSync = async (userData: Taskalator.User): Promise<TodoistSyncData> => {
+export const getTodoistSync = async (userData: Taskalator.User): Promise<Todoist.SyncResponse> => {
     const token: string | undefined = _.get(userData, 'oauthToken');
     if (!token) {
         throw new Error('No auth token');
@@ -257,7 +256,7 @@ async function updateSyncToken({ userDocId, newSyncToken }: any) {
     return;
 }
 
-async function processTaskUpdates(todoistData: TodoistSyncData, userData: Taskalator.User) {
+async function processTaskUpdates(todoistData: Todoist.SyncResponse, userData: Taskalator.User) {
     const items = _.get(todoistData, "items", []);
     const filteredItems = filterTasks(items);
     if (_.isEmpty(filteredItems)) {

@@ -24,10 +24,6 @@ export interface TaskActionInfo {
     action?: Taskalator.Action;
 }
 
-export interface TodoistSyncData {
-    sync_token: string;
-}
-
 export interface TempTask {
     due?: {
         is_recurring: boolean;
@@ -68,5 +64,9 @@ export namespace Todoist {
         taskId: number;
         content: string;
         due_date_utc: string;
+    }
+
+    export interface SyncResponse {
+        sync_token: string;
     }
 }
