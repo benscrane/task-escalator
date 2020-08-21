@@ -10,6 +10,10 @@ import * as pubsubSyncUser from '../src/pubsubSyncUser';
 
 describe('Module: pubsubSyncUser', () => {
 
+    describe('Function: loadUserData', () => {
+
+    });
+
     describe('Function: filterTasks', () => {
         const recurringTask: TempTask = {
             id: 1,

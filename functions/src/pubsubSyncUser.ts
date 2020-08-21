@@ -30,7 +30,7 @@ export const pubsubSyncUser = async (message: UserPubSubMessage) => {
     return null;
 };
 
-const loadUserData = async (todoistUid: string): Promise<Taskalator.User> => {
+export const loadUserData = async (todoistUid: string): Promise<Taskalator.User> => {
     const userQuery = db.collection('users')
         .where('todoistUserId', '==', todoistUid);
 
