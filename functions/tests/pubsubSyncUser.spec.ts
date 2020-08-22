@@ -1,4 +1,5 @@
 import 'jest';
+import axios from 'axios';
 import {
     Taskalator,
     TempTask,
@@ -8,7 +9,45 @@ import '../testHelpers/mockFirebaseSetup';
 
 import * as pubsubSyncUser from '../src/pubsubSyncUser';
 
+const axiosPostSpy: jest.SpyInstance = jest.spyOn(axios, 'post');
+
 describe('Module: pubsubSyncUser', () => {
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('Function: getTodoistSync', () => {
+        const taskalatorUser: Taskalator.User = {
+            oauthToken: 'oauthToken',
+            syncToken: 'syncToken',
+        };
+        
+        it('should call axios with correct request', async () => {
+            axiosPostSpy.mockResolvedValueOnce({});
+
+            await pubsubSyncUser.getTodoistSync(taskalatorUser);
+            expect(axiosPostSpy.mock.calls[0][0]).toEqual(
+                'https://api.todoist.com/sync/v8/sync'
+            );
+            expect(axiosPostSpy.mock.calls[0][1]).toEqual(
+                'token=oauthToken&sync_token=syncToken&resource_types=%5B%22items%22%5D'
+            );
+        });
+
+        it('should return response data from axios call', async () => {
+            const syncData: Todoist.SyncResponse = {
+                sync_token: 'abcd',
+            };
+
+            axiosPostSpy.mockResolvedValueOnce({
+                data: syncData,
+            });
+
+            const output = await pubsubSyncUser.getTodoistSync(taskalatorUser);
+            expect(output).toStrictEqual(syncData);
+        });
+    });
 
     describe('Function: filterTasks', () => {
         const recurringTask: TempTask = {
