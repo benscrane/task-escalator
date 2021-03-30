@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup NodeJS environment
+        uses: actions/setup-node@v2.1.4
+        with:
+          node-version: 12
+
+      - name: Run functions test
+        run: |
+          npm install --prefix ./functions
+          npm run test --prefix ./functions
+        
+      - name: Deploy
+        env:
+          FIREBASE_TOKEN: ${{secrets.FIREBASE_TOKEN}}
+        run: |
+          npm install
+          npm run build
+          npm run deploy_production
