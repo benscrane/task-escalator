@@ -4,8 +4,9 @@ interface TaskalatorUser {
   uid: string;
 }
 
-// should return a promise since this as an async function
-export const createUserDocument = (user: TaskalatorUser) => {
+// tslint:disable:no-any
+
+export const createUserDocument = (user: TaskalatorUser): Promise<any> => {
   const docRef = db.collection("users").doc(user.uid);
   const setUser = docRef.set(
     {

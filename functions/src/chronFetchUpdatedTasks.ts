@@ -26,12 +26,12 @@ const request = {
 
 // tslint:disable:no-any
 
-function extractDataFromMsg(message: TaskPubSubMessage): PubsubMessageData {
+export const  extractDataFromMsg = (message: TaskPubSubMessage): PubsubMessageData => {
     const buff = Buffer.from(message.message.data, "base64");
     const text = buff.toString('utf-8');
     const data: PubsubMessageData = JSON.parse(text);
     return data;
-}
+};
 
 export const chronFetchUpdatedTasks = async () => {
     // pull events from todoist-updates

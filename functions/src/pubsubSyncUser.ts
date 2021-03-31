@@ -98,7 +98,7 @@ export const filterTasks = (items: TempTask[]): TempTask[] => {
 };
 
 // return task document or empty document if none exists
-async function loadTaskDB({ userId, taskId}: any) {
+export const loadTaskalatorTask = async ({ userId, taskId}: any) => {
     const taskRef = db
         .collection("users")
         .doc(userId)
@@ -110,8 +110,7 @@ async function loadTaskDB({ userId, taskId}: any) {
     } else {
         return {};
     }
-
-}
+};
 
 export const formatTodoistTask = (item: TempTask): Todoist.Task => {
     const taskId = _.get(item, "id");
@@ -162,7 +161,7 @@ export const determineActionNeeded = ({ taskalatorTask, todoistTask, user }: Det
     return 'UPDATE';
 };
 
-async function addEscalatedTask({ todoistTaskData, userData }: TaskActionInfo) {
+export const addEscalatedTask = async ({ todoistTaskData, userData }: TaskActionInfo) => {
     const userDocId = _.get(userData, 'doc_id');
     if (!userData || !userDocId) {
         throw new Error('Missing user document ID');
@@ -182,7 +181,7 @@ async function addEscalatedTask({ todoistTaskData, userData }: TaskActionInfo) {
         .doc(String(timestamp))
         .set(dataToSave);
     console.log(`Add FS escalated task ${timestamp} for user ${userData.doc_id}`);
-}
+};
 
 async function updateFirestoreTask({ taskalatorTaskData, todoistTaskData, userData, action }: TaskActionInfo) {
     const escalate = action === "ESCALATE";
@@ -224,7 +223,7 @@ async function handleSingleTask(item: TempTask, userData: Taskalator.User) {
         userId: userData.doc_id,
         taskId: item.id
     };
-    const taskalatorTask: any = await loadTaskDB(dbInfo);
+    const taskalatorTask: any = await loadTaskalatorTask(dbInfo);
     // format incoming data
     const todoistTask = formatTodoistTask(item);
     // compare and determine course of action
@@ -248,13 +247,12 @@ async function handleSingleTask(item: TempTask, userData: Taskalator.User) {
     return;
 }
 
-async function updateSyncToken({ userDocId, newSyncToken }: any) {
+export const updateSyncToken = async ({ userDocId, newSyncToken }: any) => {
     await db
         .collection("users")
         .doc(String(userDocId))
         .set({ syncToken: newSyncToken }, { merge: true });
-    return;
-}
+};
 
 async function processTaskUpdates(todoistData: Todoist.SyncResponse, userData: Taskalator.User) {
     const items = _.get(todoistData, "items", []);
