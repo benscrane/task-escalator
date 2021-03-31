@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as _ from 'lodash';
-import * as moment from 'moment-timezone';
+import { DateTime } from 'luxon';
 import * as querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './admin';
@@ -117,8 +117,7 @@ export const formatTodoistTask = (item: TempTask): Todoist.Task => {
     const content = _.get(item, "content");
     const priority: number = Number.parseInt(_.get(item, 'priority', ''), 10);
     const date = _.get(item, "due.date");
-    const tz = _.get(item, "due.timezone");
-    const due_date_utc = moment.tz(date, tz).utc().format();
+    const due_date_utc = DateTime.fromISO(date, { zone: 'utc' }).toISO();
     if (!content || !priority || !date) {
         throw new Error("Missing params");
     }

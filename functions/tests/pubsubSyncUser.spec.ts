@@ -206,7 +206,7 @@ describe('Module: pubsubSyncUser', () => {
                 content: 'test task',
                 taskId: 100,
                 priority: 2,
-                due_date_utc: '2020-09-01T00:00:00Z'
+                due_date_utc: '2020-09-01T00:00:00.000Z'
             };
     
             const output = pubsubSyncUser.formatTodoistTask(taskInput);
