@@ -98,7 +98,7 @@ export const filterTasks = (items: TempTask[]): TempTask[] => {
 };
 
 // return task document or empty document if none exists
-async function loadTaskDB({ userId, taskId}: any) {
+export const loadTaskDB = async ({ userId, taskId}: any) => {
     const taskRef = db
         .collection("users")
         .doc(userId)
@@ -248,13 +248,13 @@ async function handleSingleTask(item: TempTask, userData: Taskalator.User) {
     return;
 }
 
-async function updateSyncToken({ userDocId, newSyncToken }: any) {
+export const updateSyncToken = async ({ userDocId, newSyncToken }: any) => {
     await db
         .collection("users")
         .doc(String(userDocId))
         .set({ syncToken: newSyncToken }, { merge: true });
     return;
-}
+};
 
 async function processTaskUpdates(todoistData: Todoist.SyncResponse, userData: Taskalator.User) {
     const items = _.get(todoistData, "items", []);
