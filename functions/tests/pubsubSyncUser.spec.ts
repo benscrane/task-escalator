@@ -1,5 +1,6 @@
 import 'jest';
 import axios from 'axios';
+import { omit } from 'lodash';
 import {
     Taskalator,
     TempTask,
@@ -46,6 +47,12 @@ describe('Module: pubsubSyncUser', () => {
 
             const output = await pubsubSyncUser.getTodoistSync(taskalatorUser);
             expect(output).toStrictEqual(syncData);
+        });
+
+        it('should throw if oauthToken is missing', async () => {
+            await expect(
+                pubsubSyncUser.getTodoistSync(omit(taskalatorUser, 'oauthToken'))
+            ).rejects.toThrow();
         });
     });
 
@@ -179,8 +186,10 @@ describe('Module: pubsubSyncUser', () => {
     });
 
     describe('Function: formatTodoistTask', () => {
-        it('should format the task correctly', () => {
-            const input: TempTask = {
+        let taskInput: TempTask;
+
+        beforeEach(() => {
+            taskInput = {
                 id: 100,
                 content: 'test task',
                 priority: '2',
@@ -189,7 +198,9 @@ describe('Module: pubsubSyncUser', () => {
                     is_recurring: false,
                 }
             };
-    
+        });
+
+        it('should format the task correctly', () => {
             const expectedOutput: Todoist.Task = {
                 content: 'test task',
                 taskId: 100,
@@ -197,8 +208,32 @@ describe('Module: pubsubSyncUser', () => {
                 due_date_utc: '2020-09-01T00:00:00Z'
             };
     
-            const output = pubsubSyncUser.formatTodoistTask(input);
+            const output = pubsubSyncUser.formatTodoistTask(taskInput);
             expect(output).toStrictEqual(expectedOutput);
+        });
+
+        it('should throw if priority is missing', () => {
+            delete taskInput.priority;
+
+            expect(() => {
+                pubsubSyncUser.formatTodoistTask(taskInput);
+            }).toThrow();
+        });
+
+        it('should throw if content is missing', () => {
+            delete taskInput.content;
+            
+            expect(() => {
+                pubsubSyncUser.formatTodoistTask(taskInput);
+            }).toThrow();
+        });
+
+        it('should throw if date is missing', () => {
+            delete taskInput.due;
+            
+            expect(() => {
+                pubsubSyncUser.formatTodoistTask(taskInput);
+            }).toThrow();
         });
     });
 });
