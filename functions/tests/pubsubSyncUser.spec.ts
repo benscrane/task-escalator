@@ -1,5 +1,6 @@
 import 'jest';
 import axios from 'axios';
+import * as firebaseAdmin from 'firebase-admin';
 import { omit } from 'lodash';
 import {
     Taskalator,
@@ -234,6 +235,104 @@ describe('Module: pubsubSyncUser', () => {
             expect(() => {
                 pubsubSyncUser.formatTodoistTask(taskInput);
             }).toThrow();
+        });
+    });
+
+    describe('Function: updateSyncToken', () => {
+        let setMock: jest.MockedFunction<(...args: any[]) => any>;
+        let docMock: jest.MockedFunction<(...args: any[]) => any>;
+        beforeEach(() => {
+            setMock = jest.fn();
+            docMock = jest.fn(() => ({ set: setMock }));
+            jest.spyOn(firebaseAdmin.firestore(), 'collection')
+                .mockReturnValue(({ doc: docMock } as unknown) as any);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks;
+        });
+
+        it('should call set with the new token', async () => {
+            const input = {
+                userDocId: 'abcd',
+                newSyncToken: '1234',
+            };
+            await pubsubSyncUser.updateSyncToken(input);
+
+            expect(setMock).toHaveBeenCalledWith({
+                syncToken: '1234'
+            }, {
+                merge: true
+            });
+        });
+
+        it('should get the document with the passed in id', async () => {
+            const input = {
+                userDocId: 'abcd',
+                newSyncToken: '1234',
+            };
+            await pubsubSyncUser.updateSyncToken(input);
+
+            expect(docMock).toHaveBeenCalledWith('abcd');
+        });
+    });
+
+    describe('Function: loadTaskalatorTask', () => {
+        let dataMock: jest.MockedFunction<(...args: any[]) => any>;
+        let getMock: jest.MockedFunction<(...args: any[]) => any>;
+        let docMockOne: jest.MockedFunction<(...args: any[]) => any>;
+        let docMockTwo: jest.MockedFunction<(...args: any[]) => any>;
+        let collectionMock: jest.MockedFunction<(...args: any[]) => any>;
+
+        const fakeDocData = {
+            stuff: 'here',
+        };
+
+        beforeEach(() => {
+            dataMock = jest.fn(() => fakeDocData);
+            getMock = jest.fn(() => ({
+                exists: true,
+                data: dataMock,
+            }));
+            docMockTwo = jest.fn(() => ({
+                get: getMock,
+            }));
+            collectionMock = jest.fn(() => ({
+                doc: docMockTwo,
+            }));
+            docMockOne = jest.fn(() => ({
+                collection: collectionMock,
+            }));
+            jest.spyOn(firebaseAdmin.firestore(), 'collection')
+                .mockReturnValue(({ doc: docMockOne } as unknown) as any);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should return doc data if doc exists', async () => {
+            const input = {
+                userId: '1234',
+                taskId: 'abcd',
+            };
+
+            const result = await pubsubSyncUser.loadTaskalatorTask(input);
+            expect(result).toEqual(fakeDocData);
+        });
+
+        it('should return empty object if doc does not exist', async () => {
+            const input = {
+                userId: '1234',
+                taskId: 'abcd',
+            };
+
+            getMock.mockReturnValue({
+                exists: false,
+            });
+
+            const result = await pubsubSyncUser.loadTaskalatorTask(input);
+            expect(result).toEqual({});
         });
     });
 });
