@@ -1,5 +1,5 @@
 import 'jest';
-import '../testHelpers/mockFirebaseSetup';
+import './helpers/mockFirebaseSetup';
 
 
 describe('Module: chronFetchUpdatedTasks', () => {

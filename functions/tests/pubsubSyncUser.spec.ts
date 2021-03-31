@@ -5,7 +5,7 @@ import {
     TempTask,
     Todoist,
 } from '../src/types';
-import '../testHelpers/mockFirebaseSetup';
+import './helpers/mockFirebaseSetup';
 
 import * as pubsubSyncUser from '../src/pubsubSyncUser';
 

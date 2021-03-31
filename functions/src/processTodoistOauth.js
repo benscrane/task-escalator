@@ -1,5 +1,4 @@
 const { db, rollbar } = require("./admin.js");
-const util = require('util');
 const axios = require('axios');
 const _ = require('lodash');
 const functions = require('firebase-functions');
