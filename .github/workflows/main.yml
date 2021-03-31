@@ -27,7 +27,7 @@ jobs:
           npm run test --prefix ./functions
         
       - name: Deploy
-        if: {{ github.ref == 'ref/head/master' }}
+        if: github.ref == 'ref/head/master'
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
