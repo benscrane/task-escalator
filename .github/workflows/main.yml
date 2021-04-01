@@ -31,6 +31,6 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          npm install
-          npm run build
-          npm run deploy_production
+          npm install --prefix ./web
+          npm run build --prefix ./web
+          npm run deploy_production --prefix ./web
