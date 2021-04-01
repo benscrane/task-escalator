@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import { DateTime } from 'luxon';
 import * as querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
-import { db } from './admin';
+import { db, rollbar } from './admin';
 import {
     PubsubMessageData,
     TaskActionInfo,
@@ -39,6 +39,7 @@ export const loadUserData = async (todoistUid: string): Promise<Taskalator.User>
         settingsObj.doc_id = userSnapshot.docs[0].id;
         return settingsObj;
     } catch (err) {
+        rollbar.error(err);
         throw new Error(err);
     }
 };
