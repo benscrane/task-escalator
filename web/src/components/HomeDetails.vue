@@ -30,8 +30,7 @@
           <v-flex xs12 md8>
             <p class="title font-weight-regular mt-3 mx-5">
               Based on thresholds that you control, Task Escalator will raise
-              the priority of your tasks if they've been pushed back too far
-              from their original due date.
+              the priority of your tasks if they've been pushed back too far.
             </p>
           </v-flex>
           <v-flex xs10 md4 mx-auto>
