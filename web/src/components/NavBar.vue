@@ -47,12 +47,12 @@
       </router-link>
       <v-spacer class="hidden-sm-and-down"></v-spacer>
       <div v-if="!isAuthenticated" class="hidden-sm-and-down">
-        <v-btn flat to="/login">Login</v-btn>
+        <v-btn text to="/login">Login</v-btn>
         <v-btn color="primary lighten-2" to="/signup">Sign Up</v-btn>
       </div>
       <div v-if="isAuthenticated" class="hidden-sm-and-down">
-        <v-btn flat to="/dashboard">Dashboard</v-btn>
-        <v-btn flat to="/settings">Settings</v-btn>
+        <v-btn text to="/dashboard">Dashboard</v-btn>
+        <v-btn text to="/settings">Settings</v-btn>
         <v-btn outline @click="logout">Logout</v-btn>
       </div>
     </v-toolbar>

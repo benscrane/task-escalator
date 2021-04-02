@@ -1,6 +1,6 @@
 import "@babel/polyfill";
 import Vue from "vue";
-import "./plugins/vuetify";
+import vuetify from "./plugins/vuetify";
 import "./plugins/vue-scrollto";
 import App from "./App.vue";
 import "@/firebase";
@@ -24,6 +24,7 @@ firebase.auth().onAuthStateChanged(async user => {
     app = new Vue({
       router,
       store,
+      vuetify,
       render: h => h(App)
     }).$mount("#app");
   }
