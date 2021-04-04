@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "taskalator"
+  },
+  "targets": {
+    "taskalator": {
+      "hosting": {
+        "production": [
+          "taskalator"
+        ],
+        "staging": [
+          "taskalator-staging"
+        ]
+      }
+    }
   }
 }
