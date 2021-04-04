@@ -27,7 +27,7 @@
       ]
     }, {
       "target": "staging",
-      "public": "web-svelte/dist",
+      "public": "web-svelte/public",
       "ignore": [
         "firebase.json",
         "**/.*",

@@ -25,6 +25,13 @@ jobs:
         run: |
           npm install --prefix ./functions
           npm run test --prefix ./functions
+
+      - name: Deploy staging site
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          npm install --prefix ./web-svelte
+          npm run build --prefix ./web-svelte
         
       - name: Deploy
         if: github.ref == 'refs/heads/main'
