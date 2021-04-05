@@ -52,6 +52,53 @@ describe('Module: chronFetchUpdatedTasks', () => {
         });
     });
 
+    describe('Function: fetchPubSubMessages', () => {
+        const pullMock = jest.fn();
+        const subPathMock = jest.fn().mockReturnValue('/subscription/path');
+        const clientMock = {
+            pull: pullMock,
+            subscriptionPath: subPathMock,
+        };
+
+        afterEach(() => {
+            jest.resetAllMocks();
+        });
+
+        it('should call client.pull', async () => {
+            pullMock.mockResolvedValue([{
+                receivedMessages: [{
+                    stuff: 'here',
+                }, {
+                    another: 'message',
+                }]
+            }]);
+            await chronFetchUpdatedTasks.fetchPubSubMessages(clientMock);
+            expect(pullMock).toHaveBeenCalledWith({
+                maxMessages: 100,
+                returnImmediately: true,
+                subscription: '/subscription/path',
+            });
+        });
+
+        it('should throw if pull throws', async () => {
+            pullMock.mockRejectedValue(undefined);
+            expect(async () => {
+                chronFetchUpdatedTasks.fetchPubSubMessages(clientMock);
+            }).rejects.toThrow();
+        });
+    });
+
+    describe('Function: getSubscriptionPath', () => {
+        const clientMock = {
+            subscriptionPath: () => '/subscription/path',
+        };
+
+        it('should call client.subscriptionPath', () => {
+            const result = chronFetchUpdatedTasks.getSubscriptionPath(clientMock);
+            expect(result).toEqual('/subscription/path');
+        });
+    });
+
     describe('Function: processMessages', () => {
         let extractSpy: jest.SpyInstance;
 
@@ -104,5 +151,17 @@ describe('Module: chronFetchUpdatedTasks', () => {
                 ],
             });
         })
+    });
+
+    describe('Function: extractDataFromMsg', () => {
+
+    });
+
+    describe('Function: ackMessages', () => {
+
+    });
+
+    describe('Function: publishTodoistIds', () => {
+
     });
 });

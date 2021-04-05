@@ -19,13 +19,22 @@ export const chronFetchUpdatedTasks = async () => {
 
 export const getPubSubClient = () => {
     return new PubSub.v1.SubscriberClient();
-}
+};
 
-export const  extractDataFromMsg = (message: TaskPubSubMessage): PubsubMessageData => {
-    const buff = Buffer.from(message.message.data, "base64");
-    const text = buff.toString('utf-8');
-    const data: PubsubMessageData = JSON.parse(text);
-    return data;
+export const fetchPubSubMessages = async (client: any): Promise<TaskPubSubMessage[]> => {
+    const subscription = getSubscriptionPath(client);
+    try {
+        const [response] = await client.pull({
+            subscription,
+            maxMessages: 100,
+            returnImmediately: true,
+        });
+        const messages: TaskPubSubMessage[] = response.receivedMessages;
+        return messages;
+    } catch (err) {
+        rollbar.error(err);
+        throw err;
+    }
 };
 
 export const getSubscriptionPath = (client: any) => {
@@ -36,32 +45,6 @@ export const getSubscriptionPath = (client: any) => {
         pullSubscription,
     );
     return formattedPullPath;
-}
-
-export const fetchPubSubMessages = async (client: any): Promise<TaskPubSubMessage[]> => {
-    const subscription = getSubscriptionPath(client);
-    try {
-        const [response] = await client.pull({
-            subscription,
-            maxMessages: 100,
-            returnImmediately: true,
-        });
-        const messages: any[] = response.receivedMessages;
-        return messages;
-    } catch (err) {
-        rollbar.error(err);
-        throw err;
-    }
-};
-
-export const ackMessages = async (client: any, ackIds: string[]) => {
-    const subscription = getSubscriptionPath(client);
-    if (ackIds.length > 0) {
-        await client.acknowledge({
-            subscription,
-            ackIds,
-        });
-    }
 };
 
 export const processMessages = (messages: TaskPubSubMessage[]): { ackIds: string[], todoistUids: string[] } => {
@@ -93,6 +76,23 @@ export const processMessages = (messages: TaskPubSubMessage[]): { ackIds: string
         ackIds,
         todoistUids,
     };
+};
+
+export const  extractDataFromMsg = (message: TaskPubSubMessage): PubsubMessageData => {
+    const buff = Buffer.from(message.message.data, "base64");
+    const text = buff.toString('utf-8');
+    const data: PubsubMessageData = JSON.parse(text);
+    return data;
+};
+
+export const ackMessages = async (client: any, ackIds: string[]) => {
+    const subscription = getSubscriptionPath(client);
+    if (ackIds.length > 0) {
+        await client.acknowledge({
+            subscription,
+            ackIds,
+        });
+    }
 };
 
 export const publishTodoistIds = async (todoistUids: string[]) => {
