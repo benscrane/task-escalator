@@ -1,6 +1,6 @@
 import 'jest';
 import './helpers/mockFirebaseSetup';
-import { TaskPubSubMessage } from '../src/types';
+import { PubsubMessageData, TaskPubSubMessage } from '../src/types';
 import * as chronFetchUpdatedTasks from '../src/chronFetchUpdatedTasks';
 
 describe('Module: chronFetchUpdatedTasks', () => {
@@ -155,6 +155,23 @@ describe('Module: chronFetchUpdatedTasks', () => {
 
     describe('Function: extractDataFromMsg', () => {
 
+        it('should extract data correctly', () => {
+            const json: PubsubMessageData = {
+                todoistId: 'abcd',
+            };
+            const buffer = Buffer.from(JSON.stringify(json));
+            const base64 = buffer.toString('base64');
+            const message: TaskPubSubMessage = {
+                message: {
+                    data: base64,
+                },
+                ackId: '1',
+            };
+            const expected = json;
+            
+            const result = chronFetchUpdatedTasks.extractDataFromMsg(message);
+            expect(result).toEqual(expected);
+        });
     });
 
     describe('Function: ackMessages', () => {
