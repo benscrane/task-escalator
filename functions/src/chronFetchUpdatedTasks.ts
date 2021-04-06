@@ -88,10 +88,15 @@ export const  extractDataFromMsg = (message: TaskPubSubMessage): PubsubMessageDa
 export const ackMessages = async (client: any, ackIds: string[]) => {
     const subscription = getSubscriptionPath(client);
     if (ackIds.length > 0) {
-        await client.acknowledge({
-            subscription,
-            ackIds,
-        });
+        try {
+            await client.acknowledge({
+                subscription,
+                ackIds,
+            });
+        } catch (err) {
+            rollbar.error(err);
+            throw new Error('Failed to acknowledge');
+        }
     }
 };
 

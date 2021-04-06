@@ -175,7 +175,34 @@ describe('Module: chronFetchUpdatedTasks', () => {
     });
 
     describe('Function: ackMessages', () => {
+        const ackIds: string[] = [
+            '1',
+            '2',
+        ];
+        const ackMock = jest.fn();
+        const clientMock = {
+            acknowledge: ackMock,
+            subscriptionPath: () => 'subscription',
+        };
 
+        afterEach(() => {
+            jest.resetAllMocks();
+        });
+
+        it('should call client.acknowledge', async () => {
+            await chronFetchUpdatedTasks.ackMessages(clientMock, ackIds);
+            expect(ackMock).toHaveBeenCalledWith({
+                subscription: 'subscription',
+                ackIds,
+            });
+        });
+
+        it('should throw if client.acknowledge fails', async () => {
+            ackMock.mockRejectedValue(undefined);
+            clientMock.acknowledge = jest.fn().mockRejectedValue({});
+
+            await expect(chronFetchUpdatedTasks.ackMessages(clientMock, ackIds)).rejects.toThrow(/Failed to acknowledge/);
+        });
     });
 
     describe('Function: publishTodoistIds', () => {
