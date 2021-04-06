@@ -1,5 +1,6 @@
 import 'jest';
 import './helpers/mockFirebaseSetup';
+import { rollbar } from '../src/admin';
 import { PubsubMessageData, TaskPubSubMessage } from '../src/types';
 import * as chronFetchUpdatedTasks from '../src/chronFetchUpdatedTasks';
 
@@ -197,6 +198,11 @@ describe('Module: chronFetchUpdatedTasks', () => {
             });
         });
 
+        it('should not call client.acknowledge if no ack ids', async () => {
+            await chronFetchUpdatedTasks.ackMessages(clientMock, []);
+            expect(ackMock.mock.calls.length).toBe(0);
+        });
+
         it('should throw if client.acknowledge fails', async () => {
             ackMock.mockRejectedValue(undefined);
             clientMock.acknowledge = jest.fn().mockRejectedValue({});
@@ -206,6 +212,42 @@ describe('Module: chronFetchUpdatedTasks', () => {
     });
 
     describe('Function: publishTodoistIds', () => {
+        const ids: string[] = [
+            'abcd',
+            'bcde',
+        ];
 
+        let publishMock: jest.MockedFunction<any>;
+
+
+        beforeEach(() => {
+            publishMock = jest.fn();
+            jest.spyOn(chronFetchUpdatedTasks, 'getPubSub')
+                .mockReturnValue({
+                    topic: jest.fn().mockReturnThis(),
+                    publish: publishMock,
+                } as any)
+        });
+
+        afterEach(() => {
+            jest.resetAllMocks();
+        });
+
+        it('should call publish for each id', async () => {
+
+            await chronFetchUpdatedTasks.publishTodoistIds(ids);
+            expect(publishMock.mock.calls.length).toBe(2);
+        });
+
+        it('should call rollbar if errors', async () => {
+            const rollbarSpy = jest.spyOn(rollbar, 'error');
+
+            publishMock.mockRejectedValue({});
+
+            await chronFetchUpdatedTasks.publishTodoistIds(ids);
+            expect(rollbarSpy.mock.calls.length).toBe(2);
+            expect(rollbarSpy.mock.calls[0][0]).toMatch(/Problem pushing userID/);
+
+        })
     });
 });

@@ -101,10 +101,9 @@ export const ackMessages = async (client: any, ackIds: string[]) => {
 };
 
 export const publishTodoistIds = async (todoistUids: string[]) => {
-    const pubsub = new PubSub.PubSub();
-    const pushTopic = "sync-user";
+    const pubsub = getPubSub();
+    const pushTopic = 'sync-user';
     for (const uid of todoistUids) {
-        // publish message
         const data: PubsubMessageData = {
             todoistId: uid
         };
@@ -118,3 +117,5 @@ export const publishTodoistIds = async (todoistUids: string[]) => {
         }
     }
 };
+
+export const getPubSub = () => new PubSub.PubSub();
