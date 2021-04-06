@@ -1,13 +1,60 @@
 <script lang="ts">
-	export let name: string;
+	import firebase from 'firebase/app';
 	import Navbar from './components/Navbar.svelte';
+	import Auth from './components/Auth.svelte';
+	import LoginForm from './components/LoginForm.svelte';
+
+	const firebaseConfig = {
+		apiKey: "AIzaSyAxWJiSO-oWCCEopy1DdMqnEiDm0u1Cz6k",
+		authDomain: "taskalator.firebaseapp.com",
+		databaseURL: "https://taskalator.firebaseio.com",
+		projectId: "taskalator",
+		storageBucket: "taskalator.appspot.com",
+		messagingSenderId: "359266108969"
+	};
+	firebase.initializeApp(firebaseConfig);
+
+	let loginWithEmailPassword;
+	let error = null;
+
+	const loginHandler = async (event) => {
+		const { email, password } = event.detail;
+		error = null;
+		try {
+			await loginWithEmailPassword(email, password);
+		} catch (err) {
+			error = err;
+		}
+	};
+
 </script>
 
+<div>
+	<Auth
+		useRedirect={true}
+		let:user
+		let:loggedIn
+		bind:loginWithEmailPassword
+		let:logout
+	>
 <Navbar/>
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+	{#if error}
+		<div>{error.message}</div>
+	{/if}
+	<div>
+		{#if loggedIn}
+			<h2>Logged in</h2>
+			<h3>{ user.email }</h3>
+			<button on:click={logout}>Logout</button>
+		{:else}
+			<h2>Logged out</h2>
+		{/if}
+	</div>
+	<LoginForm on:login={loginHandler} />
 </main>
+</Auth>
+</div>
 
 <style>
 	main {
