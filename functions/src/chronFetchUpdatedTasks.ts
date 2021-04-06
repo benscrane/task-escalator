@@ -6,25 +6,77 @@ import {
     TaskPubSubMessage,
 } from './types';
 
-// TODO: loading these defaults should be in a function
-const client = new PubSub.v1.SubscriberClient();
-const pubsub = new PubSub.PubSub();
+// tslint:disable:no-any
 
-const projectName = "taskalator";
-const pullSubscription = "pull-todoist-updates";
-const pushTopic = "sync-user";
-const formattedPullPath = client.subscriptionPath(
-    projectName,
-    pullSubscription
-);
-const maxMessages = 100;
-const request = {
-    subscription: formattedPullPath,
-    maxMessages,
-    returnImmediately: true,
+export const chronFetchUpdatedTasks = async () => {
+    const client = getPubSubClient();
+    const messages = await fetchPubSubMessages(client);
+    const { ackIds, todoistUids } = processMessages(messages);
+    await ackMessages(client, ackIds);
+    await publishTodoistIds(todoistUids);
+    return null;
 };
 
-// tslint:disable:no-any
+export const getPubSubClient = () => {
+    return new PubSub.v1.SubscriberClient();
+};
+
+export const fetchPubSubMessages = async (client: any): Promise<TaskPubSubMessage[]> => {
+    const subscription = getSubscriptionPath(client);
+    try {
+        const [response] = await client.pull({
+            subscription,
+            maxMessages: 100,
+            returnImmediately: true,
+        });
+        const messages: TaskPubSubMessage[] = response.receivedMessages;
+        return messages;
+    } catch (err) {
+        rollbar.error(err);
+        throw err;
+    }
+};
+
+export const getSubscriptionPath = (client: any) => {
+    const projectName = 'taskalator';
+    const pullSubscription = 'pull-todoist-updates';
+    const formattedPullPath = client.subscriptionPath(
+        projectName,
+        pullSubscription,
+    );
+    return formattedPullPath;
+};
+
+export const processMessages = (messages: TaskPubSubMessage[]): { ackIds: string[], todoistUids: string[] } => {
+    const reducer = (current: {ackIds: string[], todoistUids: string[]}, message: TaskPubSubMessage) => {
+        const data = extractDataFromMsg(message);
+        const todoistId = data.todoistId;
+        if (todoistId && !current.todoistUids.includes(todoistId)) {
+            return {
+                ackIds: [
+                    ...current.ackIds,
+                    message.ackId,
+                ],
+                todoistUids: [
+                    ...current.todoistUids,
+                    todoistId,
+                ],
+            };
+        }
+        return {
+            ackIds: [
+                ...current.ackIds,
+                message.ackId,
+            ],
+            todoistUids: current.todoistUids,
+        };
+    };
+    const { ackIds, todoistUids } = messages.reduce(reducer, { ackIds: [], todoistUids: [] });
+    return {
+        ackIds,
+        todoistUids,
+    };
+};
 
 export const  extractDataFromMsg = (message: TaskPubSubMessage): PubsubMessageData => {
     const buff = Buffer.from(message.message.data, "base64");
@@ -33,41 +85,25 @@ export const  extractDataFromMsg = (message: TaskPubSubMessage): PubsubMessageDa
     return data;
 };
 
-export const chronFetchUpdatedTasks = async () => {
-    // pull events from todoist-updates
-    let messages: TaskPubSubMessage[] = [];
-    try {
-        const [response]: any[] = await client.pull(request);
-        messages = response.receivedMessages;
-    } catch (err) {
-        rollbar.error(err);
-    }
-    if (messages.length === 0) return null; // skip processing if no messages
-    // this should be a messages.reduce
-    const ackIds = [];
-    const todoistUids = [];
-    // console.log(messages);
-    for (const message of messages) {
-        const data = extractDataFromMsg(message);
-        const todoistUid = data.todoistId;
-        if (todoistUid) {
-            todoistUids.push(todoistUid);
-        }
-        ackIds.push(_.get(message, "ackId"));
-    }
-    const ackRequest = {
-        subscription: formattedPullPath,
-        ackIds,
-    }
-    // acknowledge messages
+export const ackMessages = async (client: any, ackIds: string[]) => {
+    const subscription = getSubscriptionPath(client);
     if (ackIds.length > 0) {
-        await client.acknowledge(ackRequest);
+        try {
+            await client.acknowledge({
+                subscription,
+                ackIds,
+            });
+        } catch (err) {
+            rollbar.error(err);
+            throw new Error('Failed to acknowledge');
+        }
     }
-    // remove duplicates
-    const filteredTodoistUids = [...new Set(todoistUids)];
-    // publish events to sync-user
-    for (const uid of filteredTodoistUids) {
-        // publish message
+};
+
+export const publishTodoistIds = async (todoistUids: string[]) => {
+    const pubsub = getPubSub();
+    const pushTopic = 'sync-user';
+    for (const uid of todoistUids) {
         const data: PubsubMessageData = {
             todoistId: uid
         };
@@ -80,5 +116,6 @@ export const chronFetchUpdatedTasks = async () => {
             });
         }
     }
-    return null;
-}
+};
+
+export const getPubSub = () => new PubSub.PubSub();

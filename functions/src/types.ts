@@ -12,6 +12,7 @@ export interface TaskPubSubMessage {
     message: {
         data: string;
     };
+    ackId: string;
 }
 
 // TODO: why are UserPSMessage and TaskPSMessage different?

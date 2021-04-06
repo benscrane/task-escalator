@@ -1,7 +1,6 @@
 # Task Escalator
 
-[![coverage report](https://gitlab.com/benscrane/task-escalator/badges/master/coverage.svg)](https://gitlab.com/benscrane/task-escalator/-/commits/master)
-[![pipeline status](https://gitlab.com/benscrane/task-escalator/badges/master/pipeline.svg)](https://gitlab.com/benscrane/task-escalator/-/commits/master)
+[![StackShare](http://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](https://stackshare.io/benscrane/task-escalator)
 
 An extension for Todoist.
 
