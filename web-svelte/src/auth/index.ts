@@ -27,32 +27,3 @@ export const user = readable(null, set => {
 
     return unsub;
 });
-
-// export const initAuth = (useRedirect = false) => {
-//     const auth = firebase.auth();
-
-//     const loginWithEmailPassword = (email, password) =>
-//         auth.signInWithEmailAndPassword(email, password);
-
-//     const logout = () => auth.signOut();
-
-//     const user = readable(null, set => {
-//         const unsub = auth.onAuthStateChanged(async fireUser => {
-//             if (fireUser) {
-//                 const token = await fireUser.getIdTokenResult();
-//                 const user = userMapper(token.claims);
-//                 set(user);
-//             } else {
-//                 set(null);
-//             }
-//         });
-
-//         return unsub;
-//     });
-
-//     return {
-//         user,
-//         loginWithEmailPassword,
-//         logout,
-//     };
-// }
