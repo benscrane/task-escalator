@@ -1,13 +1,24 @@
 <script lang="ts">
-	export let name: string;
 	import Navbar from './components/Navbar.svelte';
+	import LoginForm from './components/LoginForm.svelte';
+	import { user } from './auth';
+
+
 </script>
 
+<div>
 <Navbar/>
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+	<div>
+		{#if $user}
+			<h2>Logged in</h2>
+		{:else}
+			<h2>Logged out</h2>
+			<LoginForm />
+		{/if}
+	</div>
 </main>
+</div>
 
 <style>
 	main {
@@ -15,13 +26,6 @@
 		padding: 1em;
 		max-width: 240px;
 		margin: 0 auto;
-	}
-
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
 	}
 
 	@media (min-width: 640px) {
