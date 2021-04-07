@@ -1,20 +1,24 @@
 <script lang="ts">
-	import firebase from 'firebase/app';
+	// import firebase from 'firebase/app';
+	import './firebase/setup';
 	import Navbar from './components/Navbar.svelte';
-	import Auth from './components/Auth.svelte';
+	// import Auth from './components/Auth.svelte';
 	import LoginForm from './components/LoginForm.svelte';
+	// import { initAuth } from './auth';
+	import { loginWithEmailPassword, user, logout } from './auth';
 
-	const firebaseConfig = {
-		apiKey: "AIzaSyAxWJiSO-oWCCEopy1DdMqnEiDm0u1Cz6k",
-		authDomain: "taskalator.firebaseapp.com",
-		databaseURL: "https://taskalator.firebaseio.com",
-		projectId: "taskalator",
-		storageBucket: "taskalator.appspot.com",
-		messagingSenderId: "359266108969"
-	};
-	firebase.initializeApp(firebaseConfig);
+	// const firebaseConfig = {
+	// 	apiKey: "AIzaSyAxWJiSO-oWCCEopy1DdMqnEiDm0u1Cz6k",
+	// 	authDomain: "taskalator.firebaseapp.com",
+	// 	databaseURL: "https://taskalator.firebaseio.com",
+	// 	projectId: "taskalator",
+	// 	storageBucket: "taskalator.appspot.com",
+	// 	messagingSenderId: "359266108969"
+	// };
+	// firebase.initializeApp(firebaseConfig);
 
-	let loginWithEmailPassword;
+	// const { loginWithEmailPassword, user, logout } = initAuth();
+
 	let error = null;
 
 	const loginHandler = async (event) => {
@@ -30,22 +34,22 @@
 </script>
 
 <div>
-	<Auth
+	<!-- <Auth
 		useRedirect={true}
 		let:user
 		let:loggedIn
 		bind:loginWithEmailPassword
 		let:logout
-	>
+	> -->
 <Navbar/>
 <main>
 	{#if error}
 		<div>{error.message}</div>
 	{/if}
 	<div>
-		{#if loggedIn}
+		{#if $user}
 			<h2>Logged in</h2>
-			<h3>{ user.email }</h3>
+			<h3>{ $user.email }</h3>
 			<button on:click={logout}>Logout</button>
 		{:else}
 			<h2>Logged out</h2>
@@ -53,7 +57,7 @@
 	</div>
 	<LoginForm on:login={loginHandler} />
 </main>
-</Auth>
+<!-- </Auth> -->
 </div>
 
 <style>
