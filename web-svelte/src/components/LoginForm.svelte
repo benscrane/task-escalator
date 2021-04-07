@@ -1,18 +1,21 @@
 <script lang='ts'>
-    import { createEventDispatcher } from 'svelte';
+    import { loginWithEmailPassword } from '../auth';
 
-    const dispatch = createEventDispatcher();
+    let error: null;
 
-    const dispatchLogin = (event) => {
+    const loginUser = async (event) => {
         const { email, password } = event.target.elements;
-        dispatch('login', {
-            email: email.value,
-            password: password.value,
-        });
+
+        error = null;
+        try {
+            await loginWithEmailPassword(email.value, password.value);
+        } catch (err) {
+            error = err;
+        }
     };
 </script>
 
-<form on:submit|preventDefault={dispatchLogin}>
+<form on:submit|preventDefault={loginUser}>
     <div>
         <label for='email'>Email</label>
         <input type='email' id='email' />
@@ -24,4 +27,9 @@
     <div>
         <button type='submit'>Login</button>
     </div>
+    {#if error}
+        <div>
+            <p>{ error.message }</p>
+        </div>
+    {/if}
 </form>

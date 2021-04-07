@@ -1,38 +1,22 @@
 <script lang="ts">
 	import Navbar from './components/Navbar.svelte';
 	import LoginForm from './components/LoginForm.svelte';
-	import { loginWithEmailPassword, user, logout } from './auth';
+	import { user } from './auth';
 
-	let error = null;
-
-	const loginHandler = async (event) => {
-		const { email, password } = event.detail;
-		error = null;
-		try {
-			await loginWithEmailPassword(email, password);
-		} catch (err) {
-			error = err;
-		}
-	};
 
 </script>
 
 <div>
 <Navbar/>
 <main>
-	{#if error}
-		<div>{error.message}</div>
-	{/if}
 	<div>
 		{#if $user}
 			<h2>Logged in</h2>
-			<h3>{ $user.email }</h3>
-			<button on:click={logout}>Logout</button>
 		{:else}
 			<h2>Logged out</h2>
+			<LoginForm />
 		{/if}
 	</div>
-	<LoginForm on:login={loginHandler} />
 </main>
 </div>
 
