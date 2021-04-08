@@ -1,5 +1,7 @@
 import { db } from './admin';
 
+// tslint:disable:no-any
+
 export interface TaskalatorUser {
   uid: string;
 }
