@@ -1,10 +1,8 @@
 import { db } from './admin';
 
-interface TaskalatorUser {
+export interface TaskalatorUser {
   uid: string;
 }
-
-// tslint:disable:no-any
 
 export const createUserDocument = (user: TaskalatorUser): Promise<any> => {
   const docRef = db.collection("users").doc(user.uid);
@@ -12,7 +10,7 @@ export const createUserDocument = (user: TaskalatorUser): Promise<any> => {
     {
       todoistLinked: false
     },
-    { merge: true }
+    { merge: true },
   );
   return setUser;
 };
