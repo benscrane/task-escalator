@@ -6,17 +6,22 @@ import {
     Taskalator,
     TempTask,
     Todoist,
+    TaskActionInfo,
 } from '../src/types';
 import './helpers/mockFirebaseSetup';
 
 import * as pubsubSyncUser from '../src/pubsubSyncUser';
 
-const axiosPostSpy: jest.SpyInstance = jest.spyOn(axios, 'post');
-
 describe('Module: pubsubSyncUser', () => {
+    let axiosPostSpy: jest.SpyInstance
+
+    beforeEach(() => {
+        axiosPostSpy = jest.spyOn(axios, 'post')
+            .mockResolvedValue({});
+    });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     describe('Function: getTodoistSync', () => {
@@ -334,5 +339,52 @@ describe('Module: pubsubSyncUser', () => {
             const result = await pubsubSyncUser.loadTaskalatorTask(input);
             expect(result).toEqual({});
         });
+    });
+
+    describe('Function: escalateTodoistTask', () => {
+        let input: TaskActionInfo;
+
+        beforeEach(() => {
+            input = {
+                oauthToken: 'abcd',
+                todoistTaskData: {
+                    priority: 2,
+                    taskId: 2,
+                    content: 'stuff',
+                    due_date_utc: '2021-01-01T12:00:00Z'
+                },
+            };
+        });
+
+        it('should throw if no auth token', async () => {
+            delete input.oauthToken;
+            
+            await expect(pubsubSyncUser.escalateTodoistTask(input))
+                .rejects
+                .toThrow(/Missing oauth token/);
+        });
+
+        it('should call axios', async () => {
+            await pubsubSyncUser.escalateTodoistTask(input);
+
+            expect(axiosPostSpy.mock.calls[0][0]).toEqual(
+                'https://api.todoist.com/sync/v8/sync',
+            );
+            const qs = axiosPostSpy.mock.calls[0][1];
+            expect(qs).toContain('token=abcd');
+            expect(qs).toContain('uuid');
+            expect(qs).toContain('item_update');
+            expect(qs).toContain('id');
+            expect(qs).toContain('priority');
+        });
+
+        it('should not escalate if priority is already 4', async () => {
+            input.todoistTaskData.priority = 4;
+
+            await pubsubSyncUser.escalateTodoistTask(input);
+
+            expect(axiosPostSpy).not.toHaveBeenCalled();
+        });
+
     });
 });
