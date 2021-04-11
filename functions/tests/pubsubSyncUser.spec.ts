@@ -387,4 +387,80 @@ describe('Module: pubsubSyncUser', () => {
         });
 
     });
+
+    describe('Function: loadUserData', () => {
+        let dataMock: jest.MockedFunction<(...args: any[]) => any>;
+        let docMock: jest.MockedFunction<any>;
+        let getMock: jest.MockedFunction<(...args: any[]) => any>;
+
+        let whereMock: jest.MockedFunction<(...args: any[]) => any>;
+        let collectionMock: jest.SpyInstance;
+
+        const todoistId = 'abcd';
+
+        const userDoc: Taskalator.User = {
+            todoistLinked: true,
+            todoistUserId: 1234,
+        };
+
+        beforeEach(() => {
+            dataMock = jest.fn(() => userDoc);
+            docMock = {
+                data: dataMock,
+                id: 'docId',
+            };
+            getMock = jest.fn(() => ({
+                docs: [
+                    docMock,
+                ],
+            }));
+
+            whereMock = jest.fn(() => ({
+                get: getMock
+            }))
+            collectionMock = jest.spyOn(firebaseAdmin.firestore(), 'collection')
+                .mockReturnValue(({ where: whereMock } as unknown) as any);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should call collection with users', async () => {
+            await pubsubSyncUser.loadUserData(todoistId);
+
+            expect(collectionMock).toHaveBeenCalledWith('users');
+        });
+
+        it('should call where', async () => {
+            await pubsubSyncUser.loadUserData(todoistId);
+
+            expect(whereMock.mock.calls[0]).toEqual([
+                'todoistUserId',
+                '==',
+                todoistId,
+            ]);
+        });
+
+
+        it('should return user data', async () => {
+            const result = await pubsubSyncUser.loadUserData(todoistId);
+
+            expect(result).toEqual({
+                ...userDoc,
+                doc_id: 'docId',
+            });
+        });
+
+        it('should call rollbar with error', async () => {
+
+            dataMock.mockImplementation(() => {
+                throw new Error('data error');
+            });
+
+            await expect(pubsubSyncUser.loadUserData(todoistId))
+                .rejects
+                .toThrow(/data error/);
+        });
+    });
 });
