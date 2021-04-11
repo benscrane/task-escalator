@@ -6,17 +6,22 @@ import {
     Taskalator,
     TempTask,
     Todoist,
+    TaskActionInfo,
 } from '../src/types';
 import './helpers/mockFirebaseSetup';
 
 import * as pubsubSyncUser from '../src/pubsubSyncUser';
 
-const axiosPostSpy: jest.SpyInstance = jest.spyOn(axios, 'post');
-
 describe('Module: pubsubSyncUser', () => {
+    let axiosPostSpy: jest.SpyInstance
+
+    beforeEach(() => {
+        axiosPostSpy = jest.spyOn(axios, 'post')
+            .mockResolvedValue({});
+    });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     describe('Function: getTodoistSync', () => {
@@ -333,6 +338,129 @@ describe('Module: pubsubSyncUser', () => {
 
             const result = await pubsubSyncUser.loadTaskalatorTask(input);
             expect(result).toEqual({});
+        });
+    });
+
+    describe('Function: escalateTodoistTask', () => {
+        let input: TaskActionInfo;
+
+        beforeEach(() => {
+            input = {
+                oauthToken: 'abcd',
+                todoistTaskData: {
+                    priority: 2,
+                    taskId: 2,
+                    content: 'stuff',
+                    due_date_utc: '2021-01-01T12:00:00Z'
+                },
+            };
+        });
+
+        it('should throw if no auth token', async () => {
+            delete input.oauthToken;
+            
+            await expect(pubsubSyncUser.escalateTodoistTask(input))
+                .rejects
+                .toThrow(/Missing oauth token/);
+        });
+
+        it('should call axios', async () => {
+            await pubsubSyncUser.escalateTodoistTask(input);
+
+            expect(axiosPostSpy.mock.calls[0][0]).toEqual(
+                'https://api.todoist.com/sync/v8/sync',
+            );
+            const qs = axiosPostSpy.mock.calls[0][1];
+            expect(qs).toContain('token=abcd');
+            expect(qs).toContain('uuid');
+            expect(qs).toContain('item_update');
+            expect(qs).toContain('id');
+            expect(qs).toContain('priority');
+        });
+
+        it('should not escalate if priority is already 4', async () => {
+            input.todoistTaskData.priority = 4;
+
+            await pubsubSyncUser.escalateTodoistTask(input);
+
+            expect(axiosPostSpy).not.toHaveBeenCalled();
+        });
+
+    });
+
+    describe('Function: loadUserData', () => {
+        let dataMock: jest.MockedFunction<(...args: any[]) => any>;
+        let docMock: jest.MockedFunction<any>;
+        let getMock: jest.MockedFunction<(...args: any[]) => any>;
+
+        let whereMock: jest.MockedFunction<(...args: any[]) => any>;
+        let collectionMock: jest.SpyInstance;
+
+        const todoistId = 'abcd';
+
+        const userDoc: Taskalator.User = {
+            todoistLinked: true,
+            todoistUserId: 1234,
+        };
+
+        beforeEach(() => {
+            dataMock = jest.fn(() => userDoc);
+            docMock = {
+                data: dataMock,
+                id: 'docId',
+            };
+            getMock = jest.fn(() => ({
+                docs: [
+                    docMock,
+                ],
+            }));
+
+            whereMock = jest.fn(() => ({
+                get: getMock
+            }))
+            collectionMock = jest.spyOn(firebaseAdmin.firestore(), 'collection')
+                .mockReturnValue(({ where: whereMock } as unknown) as any);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should call collection with users', async () => {
+            await pubsubSyncUser.loadUserData(todoistId);
+
+            expect(collectionMock).toHaveBeenCalledWith('users');
+        });
+
+        it('should call where', async () => {
+            await pubsubSyncUser.loadUserData(todoistId);
+
+            expect(whereMock.mock.calls[0]).toEqual([
+                'todoistUserId',
+                '==',
+                todoistId,
+            ]);
+        });
+
+
+        it('should return user data', async () => {
+            const result = await pubsubSyncUser.loadUserData(todoistId);
+
+            expect(result).toEqual({
+                ...userDoc,
+                doc_id: 'docId',
+            });
+        });
+
+        it('should call rollbar with error', async () => {
+
+            dataMock.mockImplementation(() => {
+                throw new Error('data error');
+            });
+
+            await expect(pubsubSyncUser.loadUserData(todoistId))
+                .rejects
+                .toThrow(/data error/);
         });
     });
 });

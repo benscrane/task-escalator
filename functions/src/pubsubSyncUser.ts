@@ -64,13 +64,15 @@ export const getTodoistSync = async (userData: Taskalator.User): Promise<Todoist
     return response.data;
 };
 
-async function escalateTodoistTask({ oauthToken, todoistTaskData }: TaskActionInfo) {
+export const escalateTodoistTask = async ({ oauthToken, todoistTaskData }: TaskActionInfo) => {
     const uuid = uuidv4();
     if (!oauthToken) {
-        throw new Error("Missing params");
+        throw new Error('Missing oauth token');
     }
     const oldPriority = Number(todoistTaskData.priority);
-    if (oldPriority === 4) return;
+    if (oldPriority === 4) {
+        return;
+    }
     const commands = [{
         type: "item_update",
         uuid,
@@ -85,9 +87,8 @@ async function escalateTodoistTask({ oauthToken, todoistTaskData }: TaskActionIn
         commands: JSON.stringify(commands),
     };
     await axios.post(url, querystring.stringify(data));
-    console.log(`Escalated Todoist task`)
     return;
-}
+};
 
 export const filterTasks = (items: TempTask[]): TempTask[] => {
     return items.filter((item: TempTask) => {
