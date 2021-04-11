@@ -7,6 +7,7 @@ import {
     TempTask,
     Todoist,
     TaskActionInfo,
+    UserPubSubMessage,
 } from '../src/types';
 import './helpers/mockFirebaseSetup';
 
@@ -461,6 +462,67 @@ describe('Module: pubsubSyncUser', () => {
             await expect(pubsubSyncUser.loadUserData(todoistId))
                 .rejects
                 .toThrow(/data error/);
+        });
+    });
+    
+    describe('Function: pubsubSyncUser', () => {
+        let loadUserDataSpy: jest.SpyInstance;
+        let getTodoistSyncSpy: jest.SpyInstance;
+        let processTaskChangesSpy: jest.SpyInstance;
+
+        const todoistId = 'todoistId';
+        const data: string = JSON.stringify({
+            todoistId,
+        });
+        const base64 = Buffer.from(data).toString('base64');
+        const message: UserPubSubMessage = {
+            data: base64
+        };
+
+        const userData: Taskalator.User = {
+            todoistUserId: 1,
+        };
+
+        const syncResponse: Todoist.SyncResponse = {
+            sync_token: 'syncToken',
+        };
+
+
+        beforeEach(() => {
+            loadUserDataSpy = jest.spyOn(pubsubSyncUser, 'loadUserData')
+                .mockResolvedValue(userData);
+
+            getTodoistSyncSpy = jest.spyOn(pubsubSyncUser, 'getTodoistSync')
+                .mockResolvedValue(syncResponse);
+
+            processTaskChangesSpy = jest.spyOn(pubsubSyncUser, 'processTaskUpdates')
+                .mockResolvedValue();
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should call loadUserData with todoist id', async () => {
+            await pubsubSyncUser.pubsubSyncUser(message);
+
+            expect(loadUserDataSpy).toHaveBeenCalledWith('todoistId');
+        });
+
+        it('should call getTodoistSync', async () => {
+            await pubsubSyncUser.pubsubSyncUser(message);
+            loadUserDataSpy.mockResolvedValue(userData);
+
+            expect(getTodoistSyncSpy).toHaveBeenCalledWith(userData);
+        });
+
+        it('should call processTaskChanges', async () => {
+            await pubsubSyncUser.pubsubSyncUser(message);
+
+            expect(processTaskChangesSpy.mock.calls[0]).toEqual([
+                syncResponse,
+                userData,
+            ]);
         });
     });
 });

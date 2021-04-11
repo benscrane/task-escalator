@@ -255,7 +255,7 @@ export const updateSyncToken = async ({ userDocId, newSyncToken }: any) => {
         .set({ syncToken: newSyncToken }, { merge: true });
 };
 
-async function processTaskUpdates(todoistData: Todoist.SyncResponse, userData: Taskalator.User) {
+export const processTaskUpdates = async (todoistData: Todoist.SyncResponse, userData: Taskalator.User) => {
     const items = _.get(todoistData, "items", []);
     const filteredItems = filterTasks(items);
     if (_.isEmpty(filteredItems)) {
@@ -272,4 +272,4 @@ async function processTaskUpdates(todoistData: Todoist.SyncResponse, userData: T
     };
     await updateSyncToken(input);
     return;
-}
+};
