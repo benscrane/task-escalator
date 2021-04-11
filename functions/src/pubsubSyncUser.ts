@@ -218,7 +218,7 @@ async function updateFirestoreTask({ taskalatorTaskData, todoistTaskData, userDa
     return;
 }
 
-async function handleSingleTask(item: TempTask, userData: Taskalator.User) {
+export const handleSingleTask = async (item: TempTask, userData: Taskalator.User) => {
     // load from database
     const dbInfo = {
         userId: userData.doc_id,
@@ -246,7 +246,7 @@ async function handleSingleTask(item: TempTask, userData: Taskalator.User) {
     }
     // we made it
     return;
-}
+};
 
 export const updateSyncToken = async ({ userDocId, newSyncToken }: any) => {
     await db
@@ -256,9 +256,9 @@ export const updateSyncToken = async ({ userDocId, newSyncToken }: any) => {
 };
 
 export const processTaskUpdates = async (todoistData: Todoist.SyncResponse, userData: Taskalator.User) => {
-    const items = _.get(todoistData, "items", []);
+    const items = _.get(todoistData, 'items', []);
     const filteredItems = filterTasks(items);
-    if (_.isEmpty(filteredItems)) {
+    if (filteredItems.length < 1) {
         return;
     }
     // if promise all is successful, update syncToken and done

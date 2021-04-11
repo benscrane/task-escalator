@@ -525,4 +525,77 @@ describe('Module: pubsubSyncUser', () => {
             ]);
         });
     });
+
+    describe('Function: processTaskUpdates', () => {
+        let handleSingleTaskSpy: jest.SpyInstance;
+        let filterTasksSpy: jest.SpyInstance;
+        let updateSyncTokenSpy: jest.SpyInstance;
+        
+        const syncResponse: Todoist.SyncResponse = {
+            sync_token: 'syncToken',
+            items: [{
+                id: 1,
+            }, {
+                id: 2,
+            }],
+        };
+        const userData: Taskalator.User = {
+            todoistUserId: 1,
+            doc_id: 'docId',
+        };
+
+        beforeEach(() => {
+            handleSingleTaskSpy = jest.spyOn(pubsubSyncUser, 'handleSingleTask')
+                .mockResolvedValue();
+
+            filterTasksSpy = jest.spyOn(pubsubSyncUser, 'filterTasks')
+                .mockReturnValue(syncResponse.items!);
+
+            updateSyncTokenSpy = jest.spyOn(pubsubSyncUser, 'updateSyncToken')
+                .mockResolvedValue();
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should call handleSingleTask', async () => {
+            await pubsubSyncUser.processTaskUpdates(syncResponse, userData);
+
+            expect(handleSingleTaskSpy).toHaveBeenCalledTimes(2);
+            expect(handleSingleTaskSpy.mock.calls).toEqual([
+                [
+                    syncResponse.items![0],
+                    userData,
+                ], [
+                    syncResponse.items![1],
+                    userData,
+                ],
+            ]);
+        });
+
+        it('should call filterTasks', async () => {
+            await pubsubSyncUser.processTaskUpdates(syncResponse, userData);
+
+            expect(filterTasksSpy).toHaveBeenCalled();
+        });
+
+        it('should stop if no filtered tasks', async () => {
+            filterTasksSpy.mockReturnValue([]);
+
+            await pubsubSyncUser.processTaskUpdates(syncResponse, userData);
+
+            expect(handleSingleTaskSpy).not.toHaveBeenCalled();
+            expect(updateSyncTokenSpy).not.toHaveBeenCalled();
+        });
+
+        it('should call updateSyncToken', async () => {
+            await pubsubSyncUser.processTaskUpdates(syncResponse, userData);
+
+            expect(updateSyncTokenSpy).toHaveBeenCalledWith({
+                newSyncToken: 'syncToken',
+                userDocId: 'docId',
+            });
+        });
+    });
 });
