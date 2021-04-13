@@ -598,4 +598,118 @@ describe('Module: pubsubSyncUser', () => {
             });
         });
     });
+
+    describe('Function: handleSingleTask', () => {
+        let loadTaskalatorTaskSpy: jest.SpyInstance;
+        let formatTodoistTaskSpy: jest.SpyInstance;
+        let determineActionNeededSpy: jest.SpyInstance;
+        let updateFirestoreTaskSpy: jest.SpyInstance;
+        let escalateTodoistTaskSpy: jest.SpyInstance;
+        let addEscalatedTaskSpy: jest.SpyInstance;
+
+        const item: TempTask = {
+            id: 1,
+            content: 'stuff',
+            priority: '2',
+            due: {
+                is_recurring: false,
+                date: '2021-04-04T12:00:00Z',
+            },
+        };
+        const todoistTask: Todoist.Task = {
+            priority: 2,
+            content: 'stuff',
+            taskId: 1,
+            due_date_utc: '2021-04-04T12:00:00Z',
+        };
+        const userData: Taskalator.User = {
+            todoistUserId: 1,
+            doc_id: 'abcd',
+            oauthToken: 'authToken',
+        };
+        const taskalatorTask: Taskalator.Task = {
+            content: 'stuff',
+        };
+
+        beforeEach(() => {
+            loadTaskalatorTaskSpy = jest.spyOn(pubsubSyncUser, 'loadTaskalatorTask')
+                .mockResolvedValue(taskalatorTask);
+
+            formatTodoistTaskSpy = jest.spyOn(pubsubSyncUser, 'formatTodoistTask')
+                .mockReturnValue(todoistTask);
+
+            determineActionNeededSpy = jest.spyOn(pubsubSyncUser, 'determineActionNeeded')
+                .mockReturnValue('UPDATE');
+            
+            updateFirestoreTaskSpy = jest.spyOn(pubsubSyncUser, 'updateFirestoreTask')
+                .mockResolvedValue();
+            
+            escalateTodoistTaskSpy = jest.spyOn(pubsubSyncUser, 'escalateTodoistTask')
+                .mockResolvedValue();
+
+            addEscalatedTaskSpy = jest.spyOn(pubsubSyncUser, 'addEscalatedTask')
+                .mockResolvedValue();
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should load taskalator task data', async () => {
+            await pubsubSyncUser.handleSingleTask(item, userData);
+
+            expect(loadTaskalatorTaskSpy).toHaveBeenCalledWith({
+                taskId: 1,
+                userId: 'abcd',
+            });
+        });
+
+        it('should call formatTodoistTask', async () => {
+            await pubsubSyncUser.handleSingleTask(item, userData);
+
+            expect(formatTodoistTaskSpy).toHaveBeenCalledWith(item);
+        });
+
+        it('should call determineActionNeeded', async () => {
+            await pubsubSyncUser.handleSingleTask(item, userData);
+
+            expect(determineActionNeededSpy).toHaveBeenCalledWith({
+                taskalatorTask,
+                todoistTask,
+                user: userData,
+            });
+        });
+
+        it('should update firestore task if action is \'UPDATE\'', async () => {
+            determineActionNeededSpy.mockReturnValue('UPDATE');
+
+            await pubsubSyncUser.handleSingleTask(item, userData);
+
+            expect(updateFirestoreTaskSpy).toHaveBeenCalledWith({
+                taskalatorTaskData: taskalatorTask,
+                todoistTaskData: todoistTask,
+                userData,
+            });
+        });
+
+        it('should escalate the task correctly', async () => {
+            determineActionNeededSpy.mockReturnValue('ESCALATE');
+
+            await pubsubSyncUser.handleSingleTask(item, userData);
+
+            expect(escalateTodoistTaskSpy).toHaveBeenCalledWith({
+                todoistTaskData: todoistTask,
+                oauthToken: 'authToken',
+            });
+            expect(updateFirestoreTaskSpy).toHaveBeenCalledWith({
+                taskalatorTaskData: taskalatorTask,
+                todoistTaskData: todoistTask,
+                userData,
+            });
+            expect(addEscalatedTaskSpy).toHaveBeenCalledWith({
+                todoistTaskData: todoistTask,
+                userData,
+            });
+        });
+    });
 });
