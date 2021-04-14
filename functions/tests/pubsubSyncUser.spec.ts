@@ -818,4 +818,78 @@ describe('Module: pubsubSyncUser', () => {
             expect(setMock.mock.calls[0][0]['original_due_date_utc']).toEqual(todoistTask.due_date_utc);
         });
     });
+
+    describe('Function: addEscalatedTask', () => {
+        let setMock: jest.MockedFunction<any>;
+        let docMockTwo: jest.MockedFunction<any>;
+        let collectionMock: jest.MockedFunction<any>;
+        let docMockOne: jest.MockedFunction<any>;
+        let collectionSpy: jest.SpyInstance;
+
+        let todoistTask: Todoist.Task;
+        let userData: Taskalator.User;
+        let input: TaskActionInfo;
+
+        beforeEach(() => {
+            setMock = jest.fn().mockResolvedValue({});
+            docMockTwo = jest.fn(() => ({
+                set: setMock,
+            }));
+            collectionMock = jest.fn(() => ({
+                doc: docMockTwo,
+            }));
+            docMockOne = jest.fn(() => ({
+                collection: collectionMock,
+            }));
+            collectionSpy = jest.spyOn(firebaseAdmin.firestore(), 'collection')
+                .mockReturnValue(({ doc: docMockOne } as unknown) as any);
+
+            todoistTask = {
+                content: 'stuff',
+                priority: 2,
+                due_date_utc: '2021-01-01T12:00:00Z',
+                taskId: 1,
+            };
+            userData = {
+                doc_id: 'abcd',
+            };
+            input = {
+                todoistTaskData: todoistTask,
+                userData,
+            };
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should throw if doc_id is missing', async () => {
+            delete userData.doc_id;
+
+            await expect(pubsubSyncUser.addEscalatedTask(input))
+                .rejects.toThrow(/Missing user document ID/);
+        });
+
+        it('should save the escalated task', async () => {
+            await pubsubSyncUser.addEscalatedTask(input);
+
+            expect(collectionSpy).toHaveBeenCalledWith('users');
+            expect(docMockOne).toHaveBeenCalledWith('abcd');
+            expect(collectionMock).toHaveBeenCalledWith('escalatedTasks');
+            expect(docMockTwo).toHaveBeenCalled();
+            expect(setMock).toHaveBeenCalledWith({
+                content: 'stuff',
+                new_priority: 3,
+                previous_priority: 2,
+                tracked_task_id: 1,
+            });
+        });
+
+        it('should not increase priority if already 4', async () => {
+            todoistTask.priority = 4;
+
+            await pubsubSyncUser.addEscalatedTask(input);
+            expect(setMock.mock.calls[0][0]['new_priority']).toEqual(4);
+        });
+    });
 });

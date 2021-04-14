@@ -164,7 +164,7 @@ export const determineActionNeeded = ({ taskalatorTask, todoistTask, user }: Det
 
 export const addEscalatedTask = async ({ todoistTaskData, userData }: TaskActionInfo) => {
     const userDocId = _.get(userData, 'doc_id');
-    if (!userData || !userDocId) {
+    if (!userDocId) {
         throw new Error('Missing user document ID');
     }
     // content, previous_priority, new_priority, tracked_task_id
@@ -181,7 +181,6 @@ export const addEscalatedTask = async ({ todoistTaskData, userData }: TaskAction
         .collection("escalatedTasks")
         .doc(String(timestamp))
         .set(dataToSave);
-    console.log(`Add FS escalated task ${timestamp} for user ${userData.doc_id}`);
 };
 
 export const updateFirestoreTask = async ({ taskalatorTaskData, todoistTaskData, userData, action }: TaskActionInfo) => {
