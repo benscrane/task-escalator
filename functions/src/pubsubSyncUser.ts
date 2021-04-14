@@ -100,7 +100,7 @@ export const filterTasks = (items: TempTask[]): TempTask[] => {
 };
 
 // return task document or empty document if none exists
-export const loadTaskalatorTask = async ({ userId, taskId}: any) => {
+export const loadTaskalatorTask = async ({ userId, taskId}: any): Promise<Taskalator.Task | undefined> => {
     const taskRef = db
         .collection("users")
         .doc(userId)
@@ -115,8 +115,8 @@ export const loadTaskalatorTask = async ({ userId, taskId}: any) => {
 };
 
 export const formatTodoistTask = (item: TempTask): Todoist.Task => {
-    const taskId = _.get(item, "id");
-    const content = _.get(item, "content");
+    const taskId = _.get(item, 'id');
+    const content = _.get(item, 'content');
     const priority: number = Number.parseInt(_.get(item, 'priority', ''), 10);
     const date = _.get(item, "due.date");
     const due_date_utc = DateTime.fromISO(date, { zone: 'utc' }).toISO();
@@ -164,7 +164,7 @@ export const determineActionNeeded = ({ taskalatorTask, todoistTask, user }: Det
 
 export const addEscalatedTask = async ({ todoistTaskData, userData }: TaskActionInfo) => {
     const userDocId = _.get(userData, 'doc_id');
-    if (!userData || !userDocId) {
+    if (!userDocId) {
         throw new Error('Missing user document ID');
     }
     // content, previous_priority, new_priority, tracked_task_id
@@ -181,14 +181,15 @@ export const addEscalatedTask = async ({ todoistTaskData, userData }: TaskAction
         .collection("escalatedTasks")
         .doc(String(timestamp))
         .set(dataToSave);
-    console.log(`Add FS escalated task ${timestamp} for user ${userData.doc_id}`);
 };
 
-async function updateFirestoreTask({ taskalatorTaskData, todoistTaskData, userData, action }: TaskActionInfo) {
+export const updateFirestoreTask = async ({ taskalatorTaskData, todoistTaskData, userData, action }: TaskActionInfo) => {
     const escalate = action === "ESCALATE";
     const escalatorPriority = Number(_.get(taskalatorTaskData, "current_priority", 999));
     const todoistPriority = Number(_.get(todoistTaskData, "priority", 888));
-    if (todoistPriority === 888) throw new Error("updateFirestoreTask: Bad todoist data");
+    if (todoistPriority === 888) {
+        throw new Error("updateFirestoreTask: Bad todoist data");
+    }
     // content and due date always come from todoist
     const content = todoistTaskData.content;
     const current_due_date_utc = todoistTaskData.due_date_utc;
@@ -216,21 +217,22 @@ async function updateFirestoreTask({ taskalatorTaskData, todoistTaskData, userDa
         .set(dataToSave, { merge: true });
     // console.log(`Update FS task ${todoistTaskData.taskId} for user ${userData.doc_id}`);
     return;
-}
+};
 
-async function handleSingleTask(item: TempTask, userData: Taskalator.User) {
+export const handleSingleTask = async (item: TempTask, userData: Taskalator.User) => {
     // load from database
     const dbInfo = {
         userId: userData.doc_id,
         taskId: item.id
     };
-    const taskalatorTask: any = await loadTaskalatorTask(dbInfo);
+    const loadedTask: Taskalator.Task | undefined = await loadTaskalatorTask(dbInfo);
+    const taskalatorTask = loadedTask ? loadedTask : {};
     // format incoming data
     const todoistTask = formatTodoistTask(item);
     // compare and determine course of action
     const action = determineActionNeeded({ taskalatorTask, todoistTask, user: userData });
     // if escalate, update todoist
-    if (action === "ESCALATE") {
+    if (action === 'ESCALATE') {
         const escalateInfo = {
             oauthToken: userData.oauthToken,
             todoistTaskData: todoistTask
@@ -238,15 +240,15 @@ async function handleSingleTask(item: TempTask, userData: Taskalator.User) {
         await escalateTodoistTask(escalateInfo);
     }
     // update firestore with new info
-    if (["ESCALATE", "UPDATE"].includes(action)) {
+    if (['ESCALATE', 'UPDATE'].includes(action)) {
         await updateFirestoreTask({ taskalatorTaskData: taskalatorTask, todoistTaskData: todoistTask, userData });
     }
-    if (action === "ESCALATE") {
+    if (action === 'ESCALATE') {
         await addEscalatedTask({ todoistTaskData: todoistTask, userData });
     }
     // we made it
     return;
-}
+};
 
 export const updateSyncToken = async ({ userDocId, newSyncToken }: any) => {
     await db
@@ -255,10 +257,10 @@ export const updateSyncToken = async ({ userDocId, newSyncToken }: any) => {
         .set({ syncToken: newSyncToken }, { merge: true });
 };
 
-async function processTaskUpdates(todoistData: Todoist.SyncResponse, userData: Taskalator.User) {
-    const items = _.get(todoistData, "items", []);
+export const processTaskUpdates = async (todoistData: Todoist.SyncResponse, userData: Taskalator.User) => {
+    const items = _.get(todoistData, 'items', []);
     const filteredItems = filterTasks(items);
-    if (_.isEmpty(filteredItems)) {
+    if (filteredItems.length < 1) {
         return;
     }
     // if promise all is successful, update syncToken and done
@@ -272,4 +274,4 @@ async function processTaskUpdates(todoistData: Todoist.SyncResponse, userData: T
     };
     await updateSyncToken(input);
     return;
-}
+};

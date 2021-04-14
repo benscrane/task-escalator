@@ -69,5 +69,6 @@ export namespace Todoist {
 
     export interface SyncResponse {
         sync_token: string;
+        items?: TempTask[];
     }
 }
