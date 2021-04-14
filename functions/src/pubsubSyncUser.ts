@@ -188,7 +188,9 @@ export const updateFirestoreTask = async ({ taskalatorTaskData, todoistTaskData,
     const escalate = action === "ESCALATE";
     const escalatorPriority = Number(_.get(taskalatorTaskData, "current_priority", 999));
     const todoistPriority = Number(_.get(todoistTaskData, "priority", 888));
-    if (todoistPriority === 888) throw new Error("updateFirestoreTask: Bad todoist data");
+    if (todoistPriority === 888) {
+        throw new Error("updateFirestoreTask: Bad todoist data");
+    }
     // content and due date always come from todoist
     const content = todoistTaskData.content;
     const current_due_date_utc = todoistTaskData.due_date_utc;

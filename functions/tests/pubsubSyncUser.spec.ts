@@ -712,4 +712,110 @@ describe('Module: pubsubSyncUser', () => {
             });
         });
     });
+
+    describe('Function: updateFirestoreTask', () => {
+        let setMock: jest.MockedFunction<any>;
+        let docMockTwo: jest.MockedFunction<any>;
+        let collectionMock: jest.MockedFunction<any>;
+        let docMockOne: jest.MockedFunction<any>;
+        let collectionSpy: jest.SpyInstance;
+
+        let todoistTask: Todoist.Task;
+        let userData: Taskalator.User;
+        let taskalatorTask: Taskalator.Task;
+
+        let input: TaskActionInfo;
+
+        beforeEach(() => {
+            setMock = jest.fn().mockResolvedValue({});
+            docMockTwo = jest.fn(() => ({
+                set: setMock,
+            }));
+            collectionMock = jest.fn(() => ({
+                doc: docMockTwo,
+            }));
+            docMockOne = jest.fn(() => ({
+                collection: collectionMock,
+            }));
+            collectionSpy = jest.spyOn(firebaseAdmin.firestore(), 'collection')
+                .mockReturnValue(({ doc: docMockOne } as unknown) as any);
+
+            todoistTask = {
+                priority: 2,
+                content: 'stuff',
+                taskId: 1,
+                due_date_utc: '2021-04-04T12:00:00Z',
+            };
+            userData = {
+                todoistUserId: 1,
+                doc_id: 'abcd',
+                oauthToken: 'authToken',
+            };
+            taskalatorTask = {
+                content: 'stuff',
+                current_due_date_utc: '2021-03-01T12:00:00Z',
+            };
+
+            input = {
+                taskalatorTaskData: taskalatorTask,
+                todoistTaskData: todoistTask,
+                userData,
+                action: 'ESCALATE',
+            };
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should throw if todoistPriority is invalid', async () => {
+            input = {
+                ...input,
+                todoistTaskData: {},
+            } as any;
+
+            await expect(pubsubSyncUser.updateFirestoreTask(input))
+                .rejects.toThrow(/Bad todoist data/);
+        });
+
+        it('should save new tasks', async () => {
+            input.action = 'UPDATE';
+
+            await pubsubSyncUser.updateFirestoreTask(input);
+
+            expect(collectionSpy).toHaveBeenCalledWith('users');
+            expect(docMockOne).toHaveBeenCalledWith('abcd');
+            expect(collectionMock).toHaveBeenCalledWith('trackedTasks');
+            expect(docMockTwo).toHaveBeenCalledWith('1');
+            expect(setMock.mock.calls[0]).toEqual([
+                {
+                    content: 'stuff',
+                    current_due_date_utc: '2021-04-04T12:00:00Z',
+                    original_due_date_utc: '2021-04-04T12:00:00Z',
+                    current_priority: 2,
+                }, {
+                    merge: true,
+                }
+            ]);
+        });
+
+        it('should not escalate priority if already a 4', async () => {
+            input.action = 'ESCALATE';
+            todoistTask.priority = 4;
+
+            await pubsubSyncUser.updateFirestoreTask(input);
+
+            expect(setMock.mock.calls[0][0]['current_priority']).toEqual(4)
+        });
+
+        it('should reset original due date if incoming priority is changing', async () => {
+            taskalatorTask.current_priority = 2;
+            todoistTask.priority = 3;
+            input.action = 'UPDATE';
+            todoistTask.due_date_utc = '2022-01-01T12:00:00Z';
+
+            await pubsubSyncUser.updateFirestoreTask(input);
+            expect(setMock.mock.calls[0][0]['original_due_date_utc']).toEqual(todoistTask.due_date_utc);
+        });
+    });
 });
