@@ -1,3 +1,7 @@
+<script lang='ts'>
+    import { logout, user } from '../auth';
+</script>
+
 <nav>
     <span>Task Escalator</span>
     <div class="spacer"></div>
@@ -7,10 +11,6 @@
         {/if}
     </div>
 </nav>
-
-<script lang='ts'>
-    import { logout, user } from '../auth';
-</script>
 
 <style>
     nav {
