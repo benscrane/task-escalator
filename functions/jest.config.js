@@ -4,8 +4,8 @@ module.exports = {
   collectCoverage: true,
   collectCoverageFrom: [
     "src/**/*.ts",
-    "src/**/*.js",
     "!src/index.ts",
+    "!src/types.ts",
   ],
   coverageReporters: [
     'text',
