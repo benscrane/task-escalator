@@ -13,7 +13,7 @@
     "build": "./node_modules/.bin/tslint --project tsconfig.json && ./node_modules/.bin/tsc"
   },
   "engines": {
-    "node": "10"
+    "node": "12"
   },
   "dependencies": {
     "@google-cloud/pubsub": "^1.2.0",
