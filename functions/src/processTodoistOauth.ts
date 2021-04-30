@@ -1,8 +1,8 @@
+import axios from 'axios';
+import { Request, Response } from 'express';
+import * as functions from 'firebase-functions';
 import { get } from 'lodash';
 import { db, rollbar } from './admin';
-import * as functions from 'firebase-functions';
-import { Request, Response } from 'express';
-import axios from 'axios';
 
 export const processTodoistOauth = async (req: Request, res: Response) => {
     try {
