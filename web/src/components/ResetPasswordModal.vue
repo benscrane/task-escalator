@@ -13,7 +13,8 @@
                 v-model="valid"
                 lazy-validation
                 id="resetForm"
-                @submit.prevent="resetPassword">
+                @submit.prevent="resetPassword"
+              >
                 <v-text-field
                   prepend-icon="mdi-account"
                   name="email"
@@ -21,20 +22,21 @@
                   type="email"
                   v-model="email"
                   :rules="emailRules"
-                  required>
+                  required
+                >
                 </v-text-field>
               </v-form>
             </v-card-text>
             <v-card-actions>
-              <v-btn
-                color="accent"
-                @click="closeModal">Cancel</v-btn>
+              <v-btn color="accent" @click="closeModal">Cancel</v-btn>
               <v-spacer></v-spacer>
               <v-btn
                 color="primary"
                 :disabled="!valid"
                 type="submit"
-                form="resetForm">Reset</v-btn>
+                form="resetForm"
+                >Reset</v-btn
+              >
             </v-card-actions>
           </v-card>
         </v-flex>
@@ -50,9 +52,7 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn
-                color="primary"
-                @click="closeModal">OK</v-btn>
+              <v-btn color="primary" @click="closeModal">OK</v-btn>
             </v-card-actions>
           </v-card>
         </v-flex>
@@ -73,9 +73,9 @@ export default {
       resetDone: false,
       email: "",
       emailRules: [
-        v => !!v || "E-mail is required",
-        v => /.+@.+/.test(v) || "E-mail must be valid"
-      ]
+        (v) => !!v || "E-mail is required",
+        (v) => /.+@.+/.test(v) || "E-mail must be valid",
+      ],
     };
   },
   methods: {
@@ -93,12 +93,13 @@ export default {
             this.email = "";
             this.resetDone = true;
           })
-          .catch(error => {
+          .catch((error) => {
+            // eslint:disable-next-line:no-console
             console.log(error);
           });
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

@@ -6,7 +6,8 @@
           <v-progress-circular
             :size="80"
             color="primary"
-            indeterminate></v-progress-circular>
+            indeterminate
+          ></v-progress-circular>
         </div>
       </v-flex>
     </v-layout>
@@ -22,7 +23,7 @@ export default {
     return {
       state: null,
       code: null,
-      success: false
+      success: false,
     };
   },
   computed: {
@@ -31,30 +32,28 @@ export default {
     },
     clientId() {
       return this.$store.getters.getTodoistClientId;
-    }
+    },
   },
   mounted() {
     if (this.$route.query.state === this.user.uid) {
       const code = this.$route.query.code;
       axios
         .get(
-          `https://us-central1-taskalator.cloudfunctions.net/processTodoistOauth?code=${code}&uid=${
-            this.user.uid
-          }`
+          `https://us-central1-taskalator.cloudfunctions.net/processTodoistOauth?code=${code}&uid=${this.user.uid}`
         )
         .then(() => {
           setTimeout(() => {
             this.$router.replace("/settings");
           }, 2000);
         })
-        .catch(error => {
+        .catch((error) => {
+          // eslint:disable-next-line:no-console
           console.error(error);
           this.$router.replace("/settings");
         });
     }
-  }
+  },
 };
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

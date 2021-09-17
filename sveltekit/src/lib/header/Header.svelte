@@ -1,16 +1,54 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import logo from './svelte-logo.svg';
+	import Button, { Label } from '@smui/button';
+
+	const logout = () => {
+		alert('Logging out');
+	};
 </script>
 
 <header>
-	<div>
-		<span>Task Escalator Icon</span>
+	<div style="display: flex; flex-direction: column; justify-content: center;">
+		<div>
+			<a href="/">
+				<img src="/icon_logo.png" alt="Task Escalator Logo" />
+			</a>
+		</div>
 	</div>
 	<nav>
 		<ul>
-			<li class="active"><a href="/login">Login</a></li>
-			<li><a href="/signup">Sign Up</a></li>
+			<li>
+				<a href="/dashboard">
+					<Button>
+						<Label>Dashboard</Label>
+					</Button>
+				</a>
+			</li>
+			<li>
+				<a href="/settings">
+					<Button>
+						<Label>Settings</Label>
+					</Button>
+				</a>
+			</li>
+			<li>
+				<Button variant="outlined" on:click={logout}>
+					<Label>Logout</Label>
+				</Button>
+			</li>
+			<li>
+				<a href="/login">
+					<Button variant="raised">
+						<Label>Login</Label>
+					</Button>
+				</a>
+			</li>
+			<li>
+				<a href="/signup"
+					><Button variant="outlined">
+						<Label>Sign Up</Label>
+					</Button></a
+				>
+			</li>
 		</ul>
 	</nav>
 </header>
@@ -32,7 +70,7 @@
 	a {
 		text-decoration: none;
 	}
-	.active {
-		text-decoration: underline;
+	a img {
+		height: 2rem;
 	}
 </style>
