@@ -126,9 +126,11 @@ export default new Vuex.Store({
           { merge: true }
         )
         .then(() => {
+          // eslint-disable-next-line
           console.log("Settings saved successfully");
         })
         .catch(error => {
+          // eslint-disable-next-line
           console.error("Error saving settings: ", error);
         });
     },

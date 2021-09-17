@@ -49,8 +49,8 @@ export default {
           }, 2000);
         })
         .catch(error => {
-          // eslint:disable-next-line:no-console
-          // console.error(error);
+          // eslint-disable-next-line
+          console.error(error);
           this.$router.replace("/settings");
         });
     }
