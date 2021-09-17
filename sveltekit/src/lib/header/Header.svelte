@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import logo from './svelte-logo.svg';
+	import Button, { Label } from '@smui/button';
 </script>
 
 <header>
@@ -9,6 +10,9 @@
 	</div>
 	<nav>
 		<ul>
+			<Button>
+				<Label>Dashboard</Label>
+			</Button>
 			<li class="active"><a href="/login">Login</a></li>
 			<li><a href="/signup">Sign Up</a></li>
 		</ul>
