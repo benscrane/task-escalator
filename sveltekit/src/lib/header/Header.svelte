@@ -1,8 +1,10 @@
 <script lang="ts">
-	import Button, { Label } from '@smui/button';
-
-	const logout = () => {
-		alert('Logging out');
+	import { getStores } from '$app/stores';
+	import authStore from '../../stores/authStore';
+	import { getAuth, signOut } from 'firebase/auth';
+	const logout = async () => {
+		const auth = getAuth();
+		await signOut(auth);
 	};
 </script>
 
@@ -16,44 +18,29 @@
 	</div>
 	<nav>
 		<ul>
-			<li>
-				<a href="/dashboard">
-					<Button>
-						<Label>Dashboard</Label>
-					</Button>
-				</a>
-			</li>
-			<li>
-				<a href="/settings">
-					<Button>
-						<Label>Settings</Label>
-					</Button>
-				</a>
-			</li>
-			<li>
-				<Button variant="outlined" on:click={logout}>
-					<Label>Logout</Label>
-				</Button>
-			</li>
-			<li>
-				<a href="/login">
-					<Button variant="raised">
-						<Label>Login</Label>
-					</Button>
-				</a>
-			</li>
-			<li>
-				<a href="/signup"
-					><Button variant="outlined">
-						<Label>Sign Up</Label>
-					</Button></a
-				>
-			</li>
+			{#if $authStore.isLoggedIn}
+				<li>
+					<a href="/dashboard" class="button is-primary is-inverted no-background">Dashboard</a>
+				</li>
+				<li>
+					<a href="/settings" class="button is-primary is-inverted no-background">Settings</a>
+				</li>
+				<li>
+					<button class="button is-primary is-outlined" on:click={logout}>Logout</button>
+				</li>
+			{:else}
+				<li>
+					<a href="/login" class="button is-primary"> Login </a>
+				</li>
+				<li>
+					<a href="/signup" class="button is-primary is-outlined">Sign Up</a>
+				</li>
+			{/if}
 		</ul>
 	</nav>
 </header>
 
-<style>
+<style lang="scss">
 	header {
 		display: flex;
 		justify-content: space-between;
@@ -69,8 +56,15 @@
 	}
 	a {
 		text-decoration: none;
+		img {
+			height: 2rem;
+		}
 	}
-	a img {
-		height: 2rem;
+	.no-background {
+		background-color: rgba(0, 0, 0, 0);
+
+		&:hover {
+			background-color: rgba(0, 0, 0, 0.08);
+		}
 	}
 </style>
