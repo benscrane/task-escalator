@@ -1,20 +1,55 @@
+<script context="module">
+	import { initializeApp } from '@firebase/app';
+	import { browser } from '$app/env';
+
+	export const load = async () => {
+		if (browser) {
+			console.log('Setting up firebase');
+			initializeApp({
+				apiKey: 'AIzaSyAxWJiSO-oWCCEopy1DdMqnEiDm0u1Cz6k',
+				authDomain: 'taskalator.firebaseapp.com',
+				databaseURL: 'https://taskalator.firebaseio.com',
+				projectId: 'taskalator',
+				storageBucket: 'taskalator.appspot.com',
+				messagingSenderId: '359266108969'
+			});
+		} else {
+			console.log('Skipping setup on server');
+		}
+
+		return {
+			props: {}
+		};
+	};
+</script>
+
 <script lang="ts">
 	import Header from '$lib/header/Header.svelte';
+	import { getAuth, onAuthStateChanged } from '@firebase/auth';
+	import authStore from '../stores/authStore';
+	import { onMount } from 'svelte';
 	import '../app.css';
+
+	onMount(() => {
+		const auth = getAuth();
+		onAuthStateChanged(auth, (user) => {
+			authStore.set({
+				isLoggedIn: user !== null,
+				user,
+				firebaseControlled: true
+			});
+		});
+	});
 </script>
 
 <Header />
 
-<main>
+<main class="container">
 	<slot />
 </main>
 
-<footer>
-	<p>visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to learn SvelteKit</p>
-</footer>
-
 <style>
-	main {
+	/* main {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
@@ -23,23 +58,5 @@
 		max-width: 1024px;
 		margin: 0 auto;
 		box-sizing: border-box;
-	}
-
-	footer {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		padding: 40px;
-	}
-
-	footer a {
-		font-weight: bold;
-	}
-
-	@media (min-width: 480px) {
-		footer {
-			padding: 40px 0;
-		}
-	}
+	} */
 </style>

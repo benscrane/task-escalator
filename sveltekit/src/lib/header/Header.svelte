@@ -1,8 +1,10 @@
 <script lang="ts">
-	import Button, { Label } from '@smui/button';
-
-	const logout = () => {
-		alert('Logging out');
+	import { getStores } from '$app/stores';
+	import authStore from '../../stores/authStore';
+	import { getAuth, signOut } from 'firebase/auth';
+	const logout = async () => {
+		const auth = getAuth();
+		await signOut(auth);
 	};
 </script>
 
@@ -16,21 +18,24 @@
 	</div>
 	<nav>
 		<ul>
-			<li>
-				<a href="/dashboard" class="button is-primary is-inverted no-background">Dashboard</a>
-			</li>
-			<li>
-				<a href="/settings" class="button is-primary is-inverted no-background">Settings</a>
-			</li>
-			<li>
-				<button class="button is-primary is-outlined" on:click={logout}>Logout</button>
-			</li>
-			<li>
-				<a href="/login" class="button is-primary"> Login </a>
-			</li>
-			<li>
-				<a href="/signup" class="button is-primary is-outlined">Sign Up</a>
-			</li>
+			{#if $authStore.isLoggedIn}
+				<li>
+					<a href="/dashboard" class="button is-primary is-inverted no-background">Dashboard</a>
+				</li>
+				<li>
+					<a href="/settings" class="button is-primary is-inverted no-background">Settings</a>
+				</li>
+				<li>
+					<button class="button is-primary is-outlined" on:click={logout}>Logout</button>
+				</li>
+			{:else}
+				<li>
+					<a href="/login" class="button is-primary"> Login </a>
+				</li>
+				<li>
+					<a href="/signup" class="button is-primary is-outlined">Sign Up</a>
+				</li>
+			{/if}
 		</ul>
 	</nav>
 </header>
