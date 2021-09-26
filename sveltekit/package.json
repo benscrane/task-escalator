@@ -21,6 +21,7 @@
 		"@smui/icon-button": "^5.0.0-beta.1",
 		"@smui/textfield": "^5.0.0-beta.5",
 		"@smui/top-app-bar": "^5.0.0-beta.1",
+		"@sveltejs/adapter-netlify": "^1.0.0-next.31",
 		"@sveltejs/kit": "next",
 		"@types/cookie": "^0.4.0",
 		"@typescript-eslint/eslint-plugin": "^4.19.0",
