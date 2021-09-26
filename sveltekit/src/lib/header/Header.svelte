@@ -17,43 +17,25 @@
 	<nav>
 		<ul>
 			<li>
-				<a href="/dashboard">
-					<Button>
-						<Label>Dashboard</Label>
-					</Button>
-				</a>
+				<a href="/dashboard" class="button is-primary is-inverted no-background">Dashboard</a>
 			</li>
 			<li>
-				<a href="/settings">
-					<Button>
-						<Label>Settings</Label>
-					</Button>
-				</a>
+				<a href="/settings" class="button is-primary is-inverted no-background">Settings</a>
 			</li>
 			<li>
-				<Button variant="outlined" on:click={logout}>
-					<Label>Logout</Label>
-				</Button>
+				<button class="button is-primary is-outlined" on:click={logout}>Logout</button>
 			</li>
 			<li>
-				<a href="/login">
-					<Button variant="raised">
-						<Label>Login</Label>
-					</Button>
-				</a>
+				<a href="/login" class="button is-primary"> Login </a>
 			</li>
 			<li>
-				<a href="/signup"
-					><Button variant="outlined">
-						<Label>Sign Up</Label>
-					</Button></a
-				>
+				<a href="/signup" class="button is-primary is-outlined">Sign Up</a>
 			</li>
 		</ul>
 	</nav>
 </header>
 
-<style>
+<style lang="scss">
 	header {
 		display: flex;
 		justify-content: space-between;
@@ -69,8 +51,15 @@
 	}
 	a {
 		text-decoration: none;
+		img {
+			height: 2rem;
+		}
 	}
-	a img {
-		height: 2rem;
+	.no-background {
+		background-color: rgba(0, 0, 0, 0);
+
+		&:hover {
+			background-color: rgba(0, 0, 0, 0.08);
+		}
 	}
 </style>
