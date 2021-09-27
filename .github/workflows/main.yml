@@ -34,7 +34,7 @@ jobs:
           npm run build --prefix ./web-svelte
         
       - name: Deploy
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/master' # disabled for now
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
