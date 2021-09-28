@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { getStores } from '$app/stores';
-	import authStore from '../../stores/authStore';
+	import authStore from '$lib/authStore';
 	import { getAuth, signOut } from 'firebase/auth';
+	import { goto } from '$app/navigation';
+
 	const logout = async () => {
 		const auth = getAuth();
 		await signOut(auth);
+		goto('/');
 	};
 </script>
 
