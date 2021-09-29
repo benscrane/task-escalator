@@ -26,18 +26,21 @@
 <script lang="ts">
 	import Header from '$lib/header/Header.svelte';
 	import { getAuth, onAuthStateChanged } from '@firebase/auth';
-	import authStore from '../stores/authStore';
+	import authStore from '$lib/authStore';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import '../app.css';
 
 	onMount(() => {
 		const auth = getAuth();
 		onAuthStateChanged(auth, (user) => {
+			const isLoggedIn = user !== null;
 			authStore.set({
-				isLoggedIn: user !== null,
+				isLoggedIn,
 				user,
 				firebaseControlled: true
 			});
+			console.log(user);
 		});
 	});
 </script>

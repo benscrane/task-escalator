@@ -1,8 +1,16 @@
+<script context="module" lang="ts">
+	import { authGuard } from '$lib/guards';
+
+	export const load = async () => {
+		return await authGuard('publicOnly')();
+	};
+</script>
+
 <script lang="ts">
 	import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 	import { goto } from '$app/navigation';
 	import { onDestroy } from 'svelte';
-	import authStore from '../stores/authStore';
+	import authStore from '$lib/authStore';
 
 	let email: string;
 	let password: string;
@@ -54,7 +62,7 @@
 
 	const sub = authStore.subscribe(async (info) => {
 		if (info.isLoggedIn) {
-			await goto('/');
+			await goto('/dashboard');
 		}
 	});
 
