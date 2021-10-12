@@ -7,23 +7,41 @@
 </script>
 
 <script lang="ts">
-	import { collection, query, getFirestore, limit, getDocs } from '@firebase/firestore';
-	import { onMount } from 'svelte';
+	import { collection, query, getFirestore, getDocs } from '@firebase/firestore';
+	import { onMount, onDestroy } from 'svelte';
+	import authStore from '$lib/authStore';
 
 	let recentEscalatedTasks = [];
+	$: escalatedCount = recentEscalatedTasks.length;
 
 	const db = getFirestore();
 
-	const userId: string = '2On8T7i7rjgtumcfgJtsNPOOkD12';
+	let userId: string = '';
+
+	const sub = authStore.subscribe(async (info) => {
+		userId = info.user.uid;
+	});
 
 	onMount(async () => {
 		const escalatedTasksRef = collection(db, 'users', userId, 'escalatedTasks');
-		const q = query(escalatedTasksRef, limit(20));
+		const q = query(escalatedTasksRef);
 		const documentSnapshots = await getDocs(q);
-		console.log(documentSnapshots[0]);
+		documentSnapshots.forEach((doc) => {
+			recentEscalatedTasks = [doc.data(), ...recentEscalatedTasks];
+		});
+	});
+
+	onDestroy(() => {
+		sub();
 	});
 </script>
 
 <div>
 	<h2>Dashboard</h2>
+	<p>{escalatedCount} tasks have been escalated for you</p>
+	<ul>
+		{#each recentEscalatedTasks.slice(0, 9) as escalatedTask}
+			<li>{escalatedTask.content}</li>
+		{/each}
+	</ul>
 </div>

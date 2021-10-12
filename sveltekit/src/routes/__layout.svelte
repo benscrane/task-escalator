@@ -4,7 +4,6 @@
 
 	export const load = async () => {
 		if (browser) {
-			console.log('Setting up firebase');
 			initializeApp({
 				apiKey: 'AIzaSyAxWJiSO-oWCCEopy1DdMqnEiDm0u1Cz6k',
 				authDomain: 'taskalator.firebaseapp.com',
@@ -14,7 +13,6 @@
 				messagingSenderId: '359266108969'
 			});
 		} else {
-			console.log('Skipping setup on server');
 		}
 
 		return {
@@ -28,7 +26,6 @@
 	import { getAuth, onAuthStateChanged } from '@firebase/auth';
 	import authStore from '$lib/authStore';
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
 	import '../app.css';
 
 	onMount(() => {
@@ -40,7 +37,6 @@
 				user,
 				firebaseControlled: true
 			});
-			console.log(user);
 		});
 	});
 </script>
